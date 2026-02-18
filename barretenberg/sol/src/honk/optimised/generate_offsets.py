@@ -186,19 +186,19 @@ def print_fr(pointer:int , name: str):
 # Smalle g1 is releavant to the points in the verification key
 def print_small_g1(pointer:int, name: str):
     print_loc(pointer, name + "_X_LOC")
-    print_loc(pointer + 32, name + "_Y_LOC")
+    print_loc(pointer + FIELD_ELEMENT_BYTES, name + "_Y_LOC")
 
 def print_g1(pointer: int, name: str):
     print_loc(pointer, name + "_X0_LOC")
-    print_loc(pointer + 32, name + "_X1_LOC")
-    print_loc(pointer + 64, name + "_Y0_LOC")
-    print_loc(pointer + 96, name + "_Y1_LOC")
+    print_loc(pointer + FIELD_ELEMENT_BYTES, name + "_X1_LOC")
+    print_loc(pointer + FIELD_ELEMENT_BYTES * 2, name + "_Y0_LOC")
+    print_loc(pointer + FIELD_ELEMENT_BYTES * 3, name + "_Y1_LOC")
 
 
 def print_vk(pointer: int):
     for item in vk_fr:
         print_fr(pointer, item)
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     for item in vk_g1:
         print_small_g1(pointer, item)
@@ -209,7 +209,7 @@ def print_vk(pointer: int):
 def print_proof(pointer: int):
     for item in pairing_points:
         print_fr(pointer, item)
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     if is_zk:
         print_small_g1(pointer, "GEMINI_MASKING_POLY")
@@ -408,7 +408,12 @@ def print_constant_term_accumulator_location(pointer: int):
 
 def print_gemini_r_inv(pointer: int):
     print_fr(pointer, "GEMINI_R_INV_LOC")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
+    return pointer
+
+def print_libra_subgroup_denom(pointer: int):
+    print_fr(pointer, "LIBRA_SUBGROUP_DENOM_LOC")
+    pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_inversions(pointer: int):
@@ -475,14 +480,16 @@ def print_fold_pos_evaluations(pointer: int):
 def print_barycentric_temp_mem(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N * 8):
         print_fr(pointer, "BARYCENTRIC_TEMP_" + str(i) + "_LOC")
-        pointer += 32
+        pointer += FIELD_ELEMENT_BYTES
 
     print_fr(pointer, "PUBLIC_INPUTS_DENOM_TEMP_LOC")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
     print_fr(pointer, "GEMINI_R_INV_TEMP_LOC")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
+    print_fr(pointer, "LIBRA_SUBGROUP_DENOM_TEMP_LOC")
+    pointer += FIELD_ELEMENT_BYTES
     print_fr(pointer, "BATCH_PRODUCT_TEMP_LOC")
-    pointer += 32
+    pointer += FIELD_ELEMENT_BYTES
 
     return pointer
 
@@ -582,6 +589,7 @@ def main():
 
     print_header_centered("SHPLEMINI - RUNTIME MEMORY - INVERSIONS")
     pointer = print_gemini_r_inv(pointer)
+    pointer = print_libra_subgroup_denom(pointer)
     pointer = print_inversions(pointer)
     print_header_centered("SHPLEMINI RUNTIME MEMORY - INVERSIONS - COMPLETE")
     print_header_centered("SHPLEMINI RUNTIME MEMORY - COMPLETE")
