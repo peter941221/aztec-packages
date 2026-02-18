@@ -1,23 +1,24 @@
 #!/bin/bash
 
-# Script to copy optimized Solidity verifier files into the C++ honk_optimized_contract.hpp file
+# Script to copy optimized Solidity verifier files into the C++ honk_*optimized_contract.hpp file
 # This automates the manual process of copying optimized verifier contracts
 # while preserving template placeholders
+#
+# Usage:
+#   ./copy_optimized_to_cpp.sh [-f]        # Non-ZK optimized verifier
+#   ./copy_optimized_to_cpp.sh [-f] --zk   # ZK optimized verifier
 
 set -e  # Exit on error
 
 # Parse command line arguments
 SKIP_BACKUP=false
-while getopts "f" opt; do
-    case $opt in
-        f)
-            SKIP_BACKUP=true
-            ;;
-        \?)
-            echo "Usage: $0 [-f]"
-            echo "  -f    Skip creating backup file"
-            exit 1
-            ;;
+ZK_MODE=false
+
+# Handle both getopts flags and long options
+for arg in "$@"; do
+    case $arg in
+        --zk) ZK_MODE=true ;;
+        -f)   SKIP_BACKUP=true ;;
     esac
 done
 
@@ -25,8 +26,22 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # Define paths relative to the barretenberg directory
 BARRETENBERG_DIR="$REPO_ROOT/barretenberg"
-SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeHonkOpt.sol"
-CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_optimized_contract.hpp"
+
+if [ "$ZK_MODE" = true ]; then
+    SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeOptZK.sol"
+    CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_zk_optimized_contract.hpp"
+    CONTRACT_NAME_FROM="BlakeOptZKHonkVerifier"
+    CONTRACT_NAME_TO="HonkVerifier"
+    CPP_LITERAL_NAME="HONK_ZK_CONTRACT_OPT_SOURCE"
+    echo "Mode: ZK optimized verifier"
+else
+    SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeHonkOpt.sol"
+    CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_optimized_contract.hpp"
+    CONTRACT_NAME_FROM="BlakeOptHonkVerifier"
+    CONTRACT_NAME_TO="HonkVerifier"
+    CPP_LITERAL_NAME="HONK_CONTRACT_OPT_SOURCE"
+    echo "Mode: Non-ZK optimized verifier"
+fi
 
 # Check if source file exists
 if [ ! -f "$SOL_SRC_FILE" ]; then
@@ -68,13 +83,28 @@ sed -i -E 's/(uint256 constant NUMBER_PUBLIC_INPUTS = )[0-9]+;/\1{{ NUM_PUBLIC_I
 sed -i -E 's/(uint256 constant REAL_NUMBER_PUBLIC_INPUTS = )[0-9]+ - [0-9]+;/\1{{ REAL_NUM_PUBLIC_INPUTS }};/' "$TEMP_SOL"
 
 # Replace the for-loop comparison to use a template placeholder for CIRCUIT_SIZE
-sed -i -E 's/for \{\} gt\(bary_centric_inverses_off, SUM_U_CHALLENGE_14\) \{/for {} gt(bary_centric_inverses_off, SUM_U_CHALLENGE_{{ LOG_N_MINUS_ONE }}) \{/' "$TEMP_SOL"
+if [ "$ZK_MODE" = true ]; then
+    # ZK uses BARYCENTRIC_LAGRANGE_DENOMINATOR_8_LOC as loop bound (domain size 9)
+    sed -i -E 's/for \{\} gt\(bary_centric_inverses_off, BARYCENTRIC_LAGRANGE_DENOMINATOR_8_LOC\) \{/for {} gt(bary_centric_inverses_off, BARYCENTRIC_LAGRANGE_DENOMINATOR_{{ BATCHED_RELATION_PARTIAL_LENGTH_MINUS_ONE }}_LOC) \{/' "$TEMP_SOL"
+else
+    sed -i -E 's/for \{\} gt\(bary_centric_inverses_off, SUM_U_CHALLENGE_14\) \{/for {} gt(bary_centric_inverses_off, SUM_U_CHALLENGE_{{ LOG_N_MINUS_ONE }}) \{/' "$TEMP_SOL"
+fi
 
 # Replace the contract name
-sed -i 's/contract BlakeOptHonkVerifier/contract HonkVerifier/' "$TEMP_SOL"
+sed -i "s/contract ${CONTRACT_NAME_FROM}/contract ${CONTRACT_NAME_TO}/" "$TEMP_SOL"
 
 # Process the file to replace _14 values with template placeholders, but only in code, not in constant declarations
-awk '
+# The _14 → {{ LOG_N_MINUS_ONE }} replacements are the same for both modes.
+# The hash length hex values differ: non-ZK uses 0x1e0/0x200, ZK uses 0x260/0x280.
+if [ "$ZK_MODE" = true ]; then
+    GEMINI_EVALS_HEX="0x260"
+    GEMINI_EVALS_HASH_HEX="0x280"
+else
+    GEMINI_EVALS_HEX="0x1e0"
+    GEMINI_EVALS_HASH_HEX="0x200"
+fi
+
+awk -v evals_hex="$GEMINI_EVALS_HEX" -v evals_hash_hex="$GEMINI_EVALS_HASH_HEX" '
     # Skip constant declarations - they should keep their hardcoded values
     /^[[:space:]]*uint256[[:space:]]+internal[[:space:]]+constant/ {
         print
@@ -89,8 +119,10 @@ awk '
         gsub(/FOLD_POS_EVALUATIONS_14_LOC/, "FOLD_POS_EVALUATIONS_{{ LOG_N_MINUS_ONE }}_LOC")
         gsub(/mcopy\(0x20, GEMINI_FOLD_UNIVARIATE_0_X_LOC, 0x380\)/, "mcopy(0x20, GEMINI_FOLD_UNIVARIATE_0_X_LOC, {{ GEMINI_FOLD_UNIVARIATE_LENGTH }})")
         gsub(/prev_challenge := mod\(keccak256\(0x00, 0x3a0\), p\)/, "prev_challenge := mod(keccak256(0x00, {{ GEMINI_FOLD_UNIVARIATE_HASH_LENGTH }}), p)")
-        gsub(/mcopy\(0x20, GEMINI_A_EVAL_0, 0x1e0\)/, "mcopy(0x20, GEMINI_A_EVAL_0, {{ GEMINI_EVALS_LENGTH }})")
-        gsub(/prev_challenge := mod\(keccak256\(0x00, 0x200\), p\)/, "prev_challenge := mod(keccak256(0x00, {{ GEMINI_EVALS_HASH_LENGTH }}), p)")
+
+        # Gemini evals mcopy and hash - hex values differ between ZK and non-ZK
+        gsub("mcopy\\(0x20, GEMINI_A_EVAL_0, " evals_hex "\\)", "mcopy(0x20, GEMINI_A_EVAL_0, {{ GEMINI_EVALS_LENGTH }})")
+        gsub("prev_challenge := mod\\(keccak256\\(0x00, " evals_hash_hex "\\), p\\)", "prev_challenge := mod(keccak256(0x00, {{ GEMINI_EVALS_HASH_LENGTH }}), p)")
         print
     }
 ' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
@@ -142,6 +174,8 @@ awk '
 ' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
 
 # Process the file to remove code inside GEMINI_FOLD_UNIVARIATE_ON_CURVE section while preserving the markers
+# (Only exists in non-ZK template; ZK template doesn't have this section)
+if [ "$ZK_MODE" = false ]; then
 awk '
     BEGIN {
         in_gemini_fold = 0
@@ -163,6 +197,7 @@ awk '
     # Print all other lines
     { print }
 ' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
+fi
 
 # Process the file to remove code inside MEMORY_LAYOUT section while preserving the markers
 awk '
@@ -294,7 +329,7 @@ awk '
 
 # Now build the complete C++ file
 # Copy everything up to and including the R"( marker
-sed -n '1,/^static const char HONK_CONTRACT_OPT_SOURCE\[\] = R"($/p' "$CPP_FILE" > "$TEMP_CPP"
+sed -n "1,/^static const char ${CPP_LITERAL_NAME}\\[\\] = R\"($/p" "$CPP_FILE" > "$TEMP_CPP"
 
 # Add the final Solidity content
 cat "$FINAL_SOL" >> "$TEMP_CPP"
@@ -310,4 +345,8 @@ sed -n '/^)";/,$p' "$CPP_FILE" | tail -n +2 >> "$TEMP_CPP"
 mv "$TEMP_CPP" "$CPP_FILE"
 
 echo ""
-echo "Optimized verifier copied successfully!"
+if [ "$ZK_MODE" = true ]; then
+    echo "ZK optimized verifier copied successfully!"
+else
+    echo "Optimized verifier copied successfully!"
+fi

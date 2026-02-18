@@ -451,6 +451,18 @@ contract HonkVerifier is IVerifier {
      *                    Subrelation intermediates (7 slots: round target, pow, AUX)
      *                    Powers of evaluation challenge (LOG_N slots)
      *                    Batch scalars (69 slots, for MSM)
+                   LATER_SCRATCH_SPACE (batch inversion products marker)
+     *                    Temporary space (45 slots, ephemeral computation)
+     *
+     * LOW MEMORY / SCRATCH SPACE (two temporally disjoint overlapping phases):
+     *
+     *   Phase 1 (Sumcheck -- barycentric evaluation):
+     *                    Barycentric Lagrange denominators (8 domain points)
+     *                    Barycentric denominator inverses (LOG_N x 8 = 120 slots)
+     *                     [Slots at 0x1000-0x10E0 overlap VK data; VK is re-loaded later]
+     *
+     // TODO: this is not necessary correct anymore - phase 1 and two are now done at the same time
+     *   Phase 2 (Shplemini -- after sumcheck completes, reuses same addresses):
      *                    Gemini R inverse (1 slot)
      *                    Inverted Gemini denominators (LOG_N+1 = 16 slots)
      *                    Batch evaluation accumulator inversions (LOG_N slots)
@@ -2568,18 +2580,10 @@ contract HonkVerifier is IVerifier {
 
             // ============= SHPLEMINI INVERSES ==============
             // Inverses were computed in the unified batch inversion above.
-            // Copy from staging area to designated addresses.
             let unshifted_scalar := 0
             let shifted_scalar := 0
             {
-                // staging[0] = 1/gemini_r -- needed for shifted_scalar computation
                 let gemini_r_inv := mload(GEMINI_R_INV_LOC)
-
-                // staging[1..3*LOG_N] maps contiguously to:
-                //   INVERTED_CHALLENGE_POW_MINUS_U_0..14
-                //   POS_INVERTED_DENOM_0..14
-                //   NEG_INVERTED_DENOM_0..14
-                // Total: 3*LOG_N
 
                 // INVERTED_GEMINI_DENOMINATOR_0 = POS_INVERTED_DENOM_0 (same value)
                 mstore(INVERTED_GEMINI_DENOMINATOR_0_LOC, mload(POS_INVERTED_DENOM_0_LOC))
@@ -3628,7 +3632,6 @@ inline std::string get_optimized_honk_solidity_verifier(auto const& verification
     set_template_param("REAL_NUM_PUBLIC_INPUTS",
                        std::to_string(verification_key->num_public_inputs - bb::PAIRING_POINTS_SIZE));
     set_template_param("LOG_N_MINUS_ONE", std::to_string(verification_key->log_circuit_size - 1));
-    set_template_param("NUMBER_OF_BARYCENTRIC_INVERSES", std::to_string(verification_key->log_circuit_size * 8));
 
     uint32_t gemini_fold_univariate_length = static_cast<uint32_t>((verification_key->log_circuit_size - 1) * 0x40);
     uint32_t gemini_fold_univariate_hash_length = static_cast<uint32_t>(gemini_fold_univariate_length + 0x20);
