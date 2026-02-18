@@ -478,7 +478,7 @@ def print_fold_pos_evaluations(pointer: int):
     return pointer
 
 def print_barycentric_temp_mem(pointer: int):
-    for i in range(0, PROOF_SIZE_LOG_N * 8):
+    for i in range(0, PROOF_SIZE_LOG_N * BARYCENTRIC_DOMAIN_SIZE):
         print_fr(pointer, "BARYCENTRIC_TEMP_" + str(i) + "_LOC")
         pointer += FIELD_ELEMENT_BYTES
 

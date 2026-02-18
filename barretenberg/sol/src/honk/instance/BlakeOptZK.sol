@@ -1069,57 +1069,73 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     uint256 internal constant  BARYCENTRIC_TEMP_117_LOC  =  0x7c60 ;
     uint256 internal constant  BARYCENTRIC_TEMP_118_LOC  =  0x7c80 ;
     uint256 internal constant  BARYCENTRIC_TEMP_119_LOC  =  0x7ca0 ;
-    uint256 internal constant  PUBLIC_INPUTS_DENOM_TEMP_LOC  =  0x7cc0 ;
-    uint256 internal constant  GEMINI_R_INV_TEMP_LOC  =  0x7ce0 ;
-    uint256 internal constant  LIBRA_SUBGROUP_DENOM_TEMP_LOC  =  0x7d00 ;
-    uint256 internal constant  BATCH_PRODUCT_TEMP_LOC  =  0x7d20 ;
-    uint256 internal constant  TEMP_0_LOC  =  0x7d40 ;
-    uint256 internal constant  TEMP_1_LOC  =  0x7d60 ;
-    uint256 internal constant  TEMP_2_LOC  =  0x7d80 ;
-    uint256 internal constant  TEMP_3_LOC  =  0x7da0 ;
-    uint256 internal constant  TEMP_4_LOC  =  0x7dc0 ;
-    uint256 internal constant  TEMP_5_LOC  =  0x7de0 ;
-    uint256 internal constant  TEMP_6_LOC  =  0x7e00 ;
-    uint256 internal constant  TEMP_7_LOC  =  0x7e20 ;
-    uint256 internal constant  TEMP_8_LOC  =  0x7e40 ;
-    uint256 internal constant  TEMP_9_LOC  =  0x7e60 ;
-    uint256 internal constant  TEMP_10_LOC  =  0x7e80 ;
-    uint256 internal constant  TEMP_11_LOC  =  0x7ea0 ;
-    uint256 internal constant  TEMP_12_LOC  =  0x7ec0 ;
-    uint256 internal constant  TEMP_13_LOC  =  0x7ee0 ;
-    uint256 internal constant  TEMP_14_LOC  =  0x7f00 ;
-    uint256 internal constant  TEMP_15_LOC  =  0x7f20 ;
-    uint256 internal constant  TEMP_16_LOC  =  0x7f40 ;
-    uint256 internal constant  TEMP_17_LOC  =  0x7f60 ;
-    uint256 internal constant  TEMP_18_LOC  =  0x7f80 ;
-    uint256 internal constant  TEMP_19_LOC  =  0x7fa0 ;
-    uint256 internal constant  TEMP_20_LOC  =  0x7fc0 ;
-    uint256 internal constant  TEMP_21_LOC  =  0x7fe0 ;
-    uint256 internal constant  TEMP_22_LOC  =  0x8000 ;
-    uint256 internal constant  TEMP_23_LOC  =  0x8020 ;
-    uint256 internal constant  TEMP_24_LOC  =  0x8040 ;
-    uint256 internal constant  TEMP_25_LOC  =  0x8060 ;
-    uint256 internal constant  TEMP_26_LOC  =  0x8080 ;
-    uint256 internal constant  TEMP_27_LOC  =  0x80a0 ;
-    uint256 internal constant  TEMP_28_LOC  =  0x80c0 ;
-    uint256 internal constant  TEMP_29_LOC  =  0x80e0 ;
-    uint256 internal constant  TEMP_30_LOC  =  0x8100 ;
-    uint256 internal constant  TEMP_31_LOC  =  0x8120 ;
-    uint256 internal constant  TEMP_32_LOC  =  0x8140 ;
-    uint256 internal constant  TEMP_33_LOC  =  0x8160 ;
-    uint256 internal constant  TEMP_34_LOC  =  0x8180 ;
-    uint256 internal constant  TEMP_35_LOC  =  0x81a0 ;
-    uint256 internal constant  TEMP_36_LOC  =  0x81c0 ;
-    uint256 internal constant  TEMP_37_LOC  =  0x81e0 ;
-    uint256 internal constant  TEMP_38_LOC  =  0x8200 ;
-    uint256 internal constant  TEMP_39_LOC  =  0x8220 ;
-    uint256 internal constant  TEMP_40_LOC  =  0x8240 ;
-    uint256 internal constant  TEMP_41_LOC  =  0x8260 ;
-    uint256 internal constant  TEMP_42_LOC  =  0x8280 ;
-    uint256 internal constant  TEMP_43_LOC  =  0x82a0 ;
-    uint256 internal constant  TEMP_44_LOC  =  0x82c0 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_120_LOC  =  0x7cc0 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_121_LOC  =  0x7ce0 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_122_LOC  =  0x7d00 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_123_LOC  =  0x7d20 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_124_LOC  =  0x7d40 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_125_LOC  =  0x7d60 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_126_LOC  =  0x7d80 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_127_LOC  =  0x7da0 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_128_LOC  =  0x7dc0 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_129_LOC  =  0x7de0 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_130_LOC  =  0x7e00 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_131_LOC  =  0x7e20 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_132_LOC  =  0x7e40 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_133_LOC  =  0x7e60 ;
+    uint256 internal constant  BARYCENTRIC_TEMP_134_LOC  =  0x7e80 ;
+    uint256 internal constant  PUBLIC_INPUTS_DENOM_TEMP_LOC  =  0x7ea0 ;
+    uint256 internal constant  GEMINI_R_INV_TEMP_LOC  =  0x7ec0 ;
+    uint256 internal constant  LIBRA_SUBGROUP_DENOM_TEMP_LOC  =  0x7ee0 ;
+    uint256 internal constant  BATCH_PRODUCT_TEMP_LOC  =  0x7f00 ;
+    uint256 internal constant  TEMP_0_LOC  =  0x7f20 ;
+    uint256 internal constant  TEMP_1_LOC  =  0x7f40 ;
+    uint256 internal constant  TEMP_2_LOC  =  0x7f60 ;
+    uint256 internal constant  TEMP_3_LOC  =  0x7f80 ;
+    uint256 internal constant  TEMP_4_LOC  =  0x7fa0 ;
+    uint256 internal constant  TEMP_5_LOC  =  0x7fc0 ;
+    uint256 internal constant  TEMP_6_LOC  =  0x7fe0 ;
+    uint256 internal constant  TEMP_7_LOC  =  0x8000 ;
+    uint256 internal constant  TEMP_8_LOC  =  0x8020 ;
+    uint256 internal constant  TEMP_9_LOC  =  0x8040 ;
+    uint256 internal constant  TEMP_10_LOC  =  0x8060 ;
+    uint256 internal constant  TEMP_11_LOC  =  0x8080 ;
+    uint256 internal constant  TEMP_12_LOC  =  0x80a0 ;
+    uint256 internal constant  TEMP_13_LOC  =  0x80c0 ;
+    uint256 internal constant  TEMP_14_LOC  =  0x80e0 ;
+    uint256 internal constant  TEMP_15_LOC  =  0x8100 ;
+    uint256 internal constant  TEMP_16_LOC  =  0x8120 ;
+    uint256 internal constant  TEMP_17_LOC  =  0x8140 ;
+    uint256 internal constant  TEMP_18_LOC  =  0x8160 ;
+    uint256 internal constant  TEMP_19_LOC  =  0x8180 ;
+    uint256 internal constant  TEMP_20_LOC  =  0x81a0 ;
+    uint256 internal constant  TEMP_21_LOC  =  0x81c0 ;
+    uint256 internal constant  TEMP_22_LOC  =  0x81e0 ;
+    uint256 internal constant  TEMP_23_LOC  =  0x8200 ;
+    uint256 internal constant  TEMP_24_LOC  =  0x8220 ;
+    uint256 internal constant  TEMP_25_LOC  =  0x8240 ;
+    uint256 internal constant  TEMP_26_LOC  =  0x8260 ;
+    uint256 internal constant  TEMP_27_LOC  =  0x8280 ;
+    uint256 internal constant  TEMP_28_LOC  =  0x82a0 ;
+    uint256 internal constant  TEMP_29_LOC  =  0x82c0 ;
+    uint256 internal constant  TEMP_30_LOC  =  0x82e0 ;
+    uint256 internal constant  TEMP_31_LOC  =  0x8300 ;
+    uint256 internal constant  TEMP_32_LOC  =  0x8320 ;
+    uint256 internal constant  TEMP_33_LOC  =  0x8340 ;
+    uint256 internal constant  TEMP_34_LOC  =  0x8360 ;
+    uint256 internal constant  TEMP_35_LOC  =  0x8380 ;
+    uint256 internal constant  TEMP_36_LOC  =  0x83a0 ;
+    uint256 internal constant  TEMP_37_LOC  =  0x83c0 ;
+    uint256 internal constant  TEMP_38_LOC  =  0x83e0 ;
+    uint256 internal constant  TEMP_39_LOC  =  0x8400 ;
+    uint256 internal constant  TEMP_40_LOC  =  0x8420 ;
+    uint256 internal constant  TEMP_41_LOC  =  0x8440 ;
+    uint256 internal constant  TEMP_42_LOC  =  0x8460 ;
+    uint256 internal constant  TEMP_43_LOC  =  0x8480 ;
+    uint256 internal constant  TEMP_44_LOC  =  0x84a0 ;
 
-    uint256 internal constant  LATER_SCRATCH_SPACE  =  0x82e0 ;
+    uint256 internal constant  LATER_SCRATCH_SPACE  =  0x84c0 ;
+
 
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -1280,7 +1296,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
         bytes32[] calldata /*public_inputs*/
     )
         public
-        view
+    //    view
         override
         returns (bool)
     {
@@ -1917,7 +1933,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     // This requires the barycentric inverses to be computed for each round
                     // Write all of the non inverted barycentric denominators into memory
                     let accumulator := 1
-                    let temp := LATER_SCRATCH_SPACE
+                    let temp := FOLD_POS_EVALUATIONS_14_LOC // we use fold pos evaluations as we add 0x20 immediately to the pointer to get `BARYCENTRIC_TEMP_0_LOC`
                     let bary_centric_inverses_off := BARYCENTRIC_DENOMINATOR_INVERSES_0_0_LOC
                     {
                         let round_challenge_off := SUM_U_CHALLENGE_0
@@ -2046,8 +2062,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                     // Append PI delta denominator to the batch inversion
                     {
                         let pi_denom := mload(PUBLIC_INPUTS_DELTA_DENOMINATOR_CHALLENGE)
-                        temp := add(temp, 0x20)
-                        mstore(temp, accumulator)
+                        mstore(PUBLIC_INPUTS_DENOM_TEMP_LOC, accumulator)
                         accumulator := mulmod(accumulator, pi_denom, p)
                     }
 
@@ -2093,9 +2108,24 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                         // Element 0: gemini_r (seed)
                         {
                             let val := mload(GEMINI_R_CHALLENGE)
-                            mstore(GEMINI_R_INV_LOC, val)
-                            temp := add(temp, 0x20)
-                            mstore(temp, accumulator)
+                            mstore(GEMINI_R_INV_TEMP_LOC, accumulator)
+                            accumulator := mulmod(accumulator, val, p)
+                        }
+
+                        // Append Libra Subgroup Denominator calculation to batch inversion
+                        {
+                            let val := addmod(
+                                mload(SHPLONK_Z_CHALLENGE),
+                                sub(p, mulmod(SUBGROUP_GENERATOR, mload(GEMINI_R_CHALLENGE), p)),
+                                p
+                            )
+                            mstore(LIBRA_SUBGROUP_DENOM_LOC, val)
+                            log0(LIBRA_SUBGROUP_DENOM_TEMP_LOC, 0x20)
+                            log0(add(LIBRA_SUBGROUP_DENOM_TEMP_LOC, 0x20), 0x20)
+                            log0(add(LIBRA_SUBGROUP_DENOM_TEMP_LOC, 0x40), 0x20)
+                            log0(add(LIBRA_SUBGROUP_DENOM_TEMP_LOC, 0x60), 0x20)
+                            mstore(LIBRA_SUBGROUP_DENOM_TEMP_LOC, accumulator)
+                            log0(LIBRA_SUBGROUP_DENOM_TEMP_LOC, 0x20)
                             accumulator := mulmod(accumulator, val, p)
                         }
 
@@ -2453,8 +2483,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                             mstore(TEMP_44_LOC, accumulator)
                             accumulator := mulmod(accumulator, val, p)
                         }
-                    }
                     /// {{ UNROLL_SECTION_END ACCUMULATE_INVERSES }}
+                    }
 
                     // Invert all elements (barycentric + PI delta + shplemini) as a single batch
                     {
@@ -2754,20 +2784,26 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                             }
                             /// {{ UNROLL_SECTION_END COLLECT_INVERSES }}
 
+                            // libra subgroup denom
+                            {
+                                log0(LIBRA_SUBGROUP_DENOM_TEMP_LOC, 0x20)
+                                let tmp := mulmod(accumulator, mload(LIBRA_SUBGROUP_DENOM_TEMP_LOC), p)
+                                accumulator := mulmod(accumulator, mload(LIBRA_SUBGROUP_DENOM_LOC), p)
+                                mstore(LIBRA_SUBGROUP_DENOM_LOC, tmp)
+                            }
+
                             // gemini_r inverse
                             {
-                                let tmp := mulmod(accumulator, mload(temp), p)
-                                accumulator := mulmod(accumulator, mload(GEMINI_R_INV_LOC), p)
+                                let tmp := mulmod(accumulator, mload(GEMINI_R_INV_TEMP_LOC), p)
+                                accumulator := mulmod(accumulator, mload(GEMINI_R_CHALLENGE), p)
                                 mstore(GEMINI_R_INV_LOC, tmp)
-                                temp := sub(temp, 0x20)
                             }
                         }
 
                         // Extract PI delta denominator inverse from the batch
                         {
-                            let pi_delta_inv := mulmod(accumulator, mload(temp), p)
+                            let pi_delta_inv := mulmod(accumulator, mload(PUBLIC_INPUTS_DENOM_TEMP_LOC), p)
                             accumulator := mulmod(accumulator, mload(PUBLIC_INPUTS_DELTA_DENOMINATOR_CHALLENGE), p)
-                            temp := sub(temp, 0x20)
 
                             // Finalize: public_inputs_delta = numerator * (1/denominator)
                             mstore(
