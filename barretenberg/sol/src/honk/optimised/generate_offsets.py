@@ -493,6 +493,21 @@ def print_barycentric_temp_mem(pointer: int):
 
     return pointer
 
+def print_small_group_ipa_mem(pointer: int):
+    for i in range(0, 256):
+        print_fr(pointer, "CHALLENGE_POLY_LAGRANGE_BASE_" + str(i))
+        pointer += FIELD_ELEMENT_BYTES
+
+    for i in range(0, 256):
+        print_fr(pointer, "CONSISTENCY_DENOMINATORS_BASE_" + str(i))
+        pointer += FIELD_ELEMENT_BYTES
+
+    for i in range(0, 256):
+        print_fr(pointer, "CONSISTENCY_PRODUCTS_BASE_" + str(i))
+        pointer += FIELD_ELEMENT_BYTES
+
+    return pointer
+
 def print_later_scratch_space(pointer: int):
     print_fr(pointer, "LATER_SCRATCH_SPACE")
     pointer += FIELD_ELEMENT_BYTES
@@ -599,6 +614,9 @@ def main():
     pointer = print_barycentric_temp_mem(pointer)
     pointer = print_temp_space(pointer)
     print("")
+
+    if is_zk:
+        pointer = print_small_group_ipa_mem(pointer)
 
     pointer = print_later_scratch_space(pointer)
     print_header_centered("Temporary space - COMPLETE")

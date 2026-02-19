@@ -618,27 +618,43 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
         print_fr(pointer, "TEMP_" + std::to_string(i) + "_LOC");
         pointer += 32;
     }
-    print_fr(pointer, "LATER_SCRATCH_SPACE");
-    pointer += 32;
-    print_header_centered("Temporary space - COMPLETE");
 
     // ZK: Consistency check scratch space
     if (config.is_zk) {
-        print_header_centered("ZK: Consistency check scratch space");
-        out << "// challengePolyLagrange[256]: 0x6000 - 0x7FFF\n";
-        print_fr(0x6000, "CHALLENGE_POLY_LAGRANGE_BASE");
-        out << "// denominators[256]: 0x8000 - 0x9FFF\n";
-        print_fr(0x8000, "CONSISTENCY_DENOMINATORS_BASE");
-        out << "// batch inversion products[256]: 0xA000 - 0xBFFF\n";
-        print_fr(0xA000, "CONSISTENCY_PRODUCTS_BASE");
+        print_header_centered("Small subgroup IPA");
+        out << "// Allocating clean memory here comes has a ~4k gas overhead\n";
+        for (int i = 0; i < 256; ++i) {
+            print_fr(pointer, "CHALLENGE_POLY_LAGRANGE_BASE_" + std::to_string(i));
+            pointer += 32;
+        }
+
+        out << "\n";
+        for (int i = 0; i < 256; ++i) {
+            print_fr(pointer, "CONSISTENCY_DENOMINATORS_BASE_" + std::to_string(i));
+            pointer += 32;
+        }
+
+        out << "\n";
+        for (int i = 0; i < 256; ++i) {
+            print_fr(pointer, "CONSISTENCY_PRODUCTS_BASE_" + std::to_string(i));
+            pointer += 32;
+        }
+
+        out << "\n";
         out << "// LIBRA_UNIVARIATES_LENGTH = BATCHED_RELATION_PARTIAL_LENGTH = " << std::dec
             << config.batched_relation_partial_length << "\n";
         out << "uint256 internal constant LIBRA_UNIVARIATES_LENGTH = " << std::showbase << std::hex
             << config.batched_relation_partial_length << ";\n";
+        out << "uint256 internal constant LIBRA_UNIVARIATES_LENGTH_MINUS_ONE = " << std::showbase << std::hex
+            << config.batched_relation_partial_length - 1 << ";\n";
         out << "// 1/SUBGROUP_SIZE mod p (precomputed constant)\n";
         out << "uint256 internal constant INV_SUBGROUP_SIZE = "
                "0x3033ea246e506e898e97f570caffd704cb0bb460313fb720b29e139e5c100001;\n";
     }
+
+    print_fr(pointer, "LATER_SCRATCH_SPACE");
+    pointer += 32;
+    print_header_centered("Temporary space - COMPLETE");
 
     // Scratch space aliases
     out << "\n";
@@ -679,25 +695,31 @@ inline void apply_template_params(std::string& template_str, VK const& verificat
         }
     };
 
+    auto log_circuit_size = verification_key->log_circuit_size;
     set_template_param("VK_HASH", field_to_hex(verification_key->hash()));
-    set_template_param("CIRCUIT_SIZE", std::to_string(1 << verification_key->log_circuit_size));
-    set_template_param("LOG_CIRCUIT_SIZE", std::to_string(verification_key->log_circuit_size));
+    set_template_param("CIRCUIT_SIZE", std::to_string(1 << log_circuit_size));
+    set_template_param("LOG_CIRCUIT_SIZE", std::to_string(log_circuit_size));
     set_template_param("NUM_PUBLIC_INPUTS", std::to_string(verification_key->num_public_inputs));
     // REAL_NUM_PUBLIC_INPUTS excludes the 8 pairing point limbs that are part of the proof structure
     set_template_param("REAL_NUM_PUBLIC_INPUTS",
                        std::to_string(verification_key->num_public_inputs - bb::PAIRING_POINTS_SIZE));
-    set_template_param("LOG_N_MINUS_ONE", std::to_string(verification_key->log_circuit_size - 1));
+    set_template_param("LOG_N_MINUS_ONE", std::to_string(log_circuit_size - 1));
 
     // ZK: BATCHED_RELATION_PARTIAL_LENGTH - 1 = 8 (constant for ZK, domain size is always 9)
     if (is_zk) {
         set_template_param("BATCHED_RELATION_PARTIAL_LENGTH_MINUS_ONE", "8");
+        set_template_param("NUMBER_OF_LAGRANGE_BASES", std::to_string(log_circuit_size * 9));
+        // Libra batch scalar indices: placed after gemini fold scalars (38 + LOG_N-1 = 37 + LOG_N)
+        set_template_param("LIBRA_BATCH_SCALAR_0", std::to_string(37 + log_circuit_size));
+        set_template_param("LIBRA_BATCH_SCALAR_1", std::to_string(38 + log_circuit_size));
+        set_template_param("LIBRA_BATCH_SCALAR_2", std::to_string(39 + log_circuit_size));
     }
 
-    uint32_t gemini_fold_univariate_length = static_cast<uint32_t>((verification_key->log_circuit_size - 1) * 0x40);
+    uint32_t gemini_fold_univariate_length = static_cast<uint32_t>((log_circuit_size - 1) * 0x40);
     uint32_t gemini_fold_univariate_hash_length = static_cast<uint32_t>(gemini_fold_univariate_length + 0x20);
     // ZK: gemini evals include log_n evals + 4 libra poly evals
-    uint32_t gemini_evals_length = is_zk ? static_cast<uint32_t>((verification_key->log_circuit_size + 4) * 0x20)
-                                         : static_cast<uint32_t>(verification_key->log_circuit_size * 0x20);
+    uint32_t gemini_evals_length =
+        is_zk ? static_cast<uint32_t>((log_circuit_size + 4) * 0x20) : static_cast<uint32_t>(log_circuit_size * 0x20);
     uint32_t gemini_evals_hash_length = static_cast<uint32_t>(gemini_evals_length + 0x20);
 
     set_template_param("GEMINI_FOLD_UNIVARIATE_LENGTH", int_to_hex(gemini_fold_univariate_length));

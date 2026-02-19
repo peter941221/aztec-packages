@@ -119,6 +119,7 @@ awk -v evals_hex="$GEMINI_EVALS_HEX" -v evals_hash_hex="$GEMINI_EVALS_HASH_HEX" 
         gsub(/FOLD_POS_EVALUATIONS_14_LOC/, "FOLD_POS_EVALUATIONS_{{ LOG_N_MINUS_ONE }}_LOC")
         gsub(/mcopy\(0x20, GEMINI_FOLD_UNIVARIATE_0_X_LOC, 0x380\)/, "mcopy(0x20, GEMINI_FOLD_UNIVARIATE_0_X_LOC, {{ GEMINI_FOLD_UNIVARIATE_LENGTH }})")
         gsub(/prev_challenge := mod\(keccak256\(0x00, 0x3a0\), p\)/, "prev_challenge := mod(keccak256(0x00, {{ GEMINI_FOLD_UNIVARIATE_HASH_LENGTH }}), p)")
+        gsub(/CHALLENGE_POLY_LAGRANGE_BASE_135/, "CHALLENGE_POLY_LAGRANGE_BASE_{{ NUMBER_OF_LAGRANGE_BASES }}")
 
         # Gemini evals mcopy and hash - hex values differ between ZK and non-ZK
         gsub("mcopy\\(0x20, GEMINI_A_EVAL_0, " evals_hex "\\)", "mcopy(0x20, GEMINI_A_EVAL_0, {{ GEMINI_EVALS_LENGTH }})")
@@ -172,6 +173,24 @@ awk '
     # Print all other lines
     { print }
 ' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
+
+# ZK: Replace libra batch scalar indices with template parameters
+# Libra scalars follow gemini folds (index 37 + LOG_N), so for LOG_N=15 they are at 52/53/54.
+# After UNROLL sections are stripped, only libra-specific references to BATCH_SCALAR_52/53/54 remain.
+if [ "$ZK_MODE" = true ]; then
+    awk '
+        /^[[:space:]]*uint256[[:space:]]+internal[[:space:]]+constant/ {
+            print
+            next
+        }
+        {
+            gsub(/BATCH_SCALAR_52_LOC/, "BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_0 }}_LOC")
+            gsub(/BATCH_SCALAR_53_LOC/, "BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_1 }}_LOC")
+            gsub(/BATCH_SCALAR_54_LOC/, "BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_2 }}_LOC")
+            print
+        }
+    ' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
+fi
 
 # Process the file to remove code inside MEMORY_LAYOUT section while preserving the markers
 awk '

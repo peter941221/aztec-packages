@@ -894,7 +894,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 1
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_1, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 1), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -906,7 +906,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 2
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_2, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 2), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -918,7 +918,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 3
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_3, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 3), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -930,7 +930,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 4
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_4, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 4), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -942,7 +942,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 5
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_5, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 5), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -954,7 +954,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 6
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_6, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 6), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -966,7 +966,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 7
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_7, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 7), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -978,7 +978,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 8 (ZK)
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_8, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 8), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -2746,11 +2746,11 @@ contract HonkVerifier is IVerifier {
 
                 // Store commitment scalars:
                 // scalars[52] = batchingScalars[0] (for libraCommitments[0] = libraConcat)
-                mstore(BATCH_SCALAR_52_LOC, libra_scalar_0)
+                mstore(BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_0 }}_LOC, libra_scalar_0)
                 // scalars[53] = batchingScalars[1] + batchingScalars[2] (for libraCommitments[1] = libraGrandProduct)
-                mstore(BATCH_SCALAR_53_LOC, addmod(libra_scalar_1, libra_scalar_2, p))
+                mstore(BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_1 }}_LOC, addmod(libra_scalar_1, libra_scalar_2, p))
                 // scalars[54] = batchingScalars[3] (for libraCommitments[2] = libraQuotient)
-                mstore(BATCH_SCALAR_54_LOC, libra_scalar_3)
+                mstore(BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_2 }}_LOC, libra_scalar_3)
             }
 
             /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -2781,27 +2781,29 @@ contract HonkVerifier is IVerifier {
                 // Step 2: Build challengePolyLagrange[0..255]
                 // Memory layout: CHALLENGE_POLY_LAGRANGE_BASE + idx * 0x20
                 // Zero-initialize all 256 entries (only 1 + 9*LOG_N = 136 will be non-zero)
-                calldatacopy(CHALLENGE_POLY_LAGRANGE_BASE, calldatasize(), 0x2000)
 
-                mstore(CHALLENGE_POLY_LAGRANGE_BASE, 1) // [0] = 1
+                mstore(CHALLENGE_POLY_LAGRANGE_BASE_0, 1) // [0] = 1
 
                 {
                     let u_loc := SUM_U_CHALLENGE_0
-                    for { let round := 0 } lt(round, LOG_N) { round := add(round, 1) } {
-                        let curr_idx := add(1, mul(LIBRA_UNIVARIATES_LENGTH, round))
+                    let challenge_base := CHALLENGE_POLY_LAGRANGE_BASE_1
+                    // Upper bound of this loop is LIBRA_UNIVARIATES_LENGTH * LOG_N - this is inserted in code templating depending on LOG_N
+                    for { } lt(challenge_base, CHALLENGE_POLY_LAGRANGE_BASE_{{ NUMBER_OF_LAGRANGE_BASES }}) { } {
                         let u_round := mload(u_loc)
 
                         // [currIdx] = 1
-                        mstore(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(curr_idx, 0x20)), 1)
+                        mstore(challenge_base, 1)
+                        challenge_base := add(challenge_base, 0x20)
+
+                        // Calc memory offset inner loop should break at
+                        let loop_target := add(challenge_base, mul(0x20, LIBRA_UNIVARIATES_LENGTH_MINUS_ONE))
 
                         // [currIdx+1..currIdx+8] = u^1, u^2, ..., u^8
                         let prev_val := 1
-                        for { let j := 1 } lt(j, LIBRA_UNIVARIATES_LENGTH) { j := add(j, 1) } {
+                        for { } lt(challenge_base, loop_target) { } {
                             prev_val := mulmod(prev_val, u_round, p)
-                            mstore(
-                                add(CHALLENGE_POLY_LAGRANGE_BASE, mul(add(curr_idx, j), 0x20)),
-                                prev_val
-                            )
+                            mstore(challenge_base, prev_val)
+                            challenge_base := add(challenge_base, 0x20)
                         }
 
                         u_loc := add(u_loc, 0x20)
@@ -2812,30 +2814,38 @@ contract HonkVerifier is IVerifier {
                 // where rootPower_i = SUBGROUP_GENERATOR_INVERSE^i
                 {
                     let root_power := 1
-                    for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                    let consistency_base := CONSISTENCY_DENOMINATORS_BASE_0
+                    for { } lt(consistency_base, CONSISTENCY_PRODUCTS_BASE_0) { } {
                         let denom := addmod(mulmod(root_power, gemini_r, p), sub(p, 1), p)
-                        mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), denom)
+                        mstore(consistency_base, denom)
                         root_power := mulmod(root_power, SUBGROUP_GENERATOR_INVERSE, p)
+                        consistency_base := add(consistency_base, 0x20)
                     }
                 }
 
                 // Step 4: Batch invert all 256 denominators (Montgomery's trick)
                 {
                     // Forward pass: accumulate products
-                    mstore(CONSISTENCY_PRODUCTS_BASE, mload(CONSISTENCY_DENOMINATORS_BASE))
-                    for { let idx := 1 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                    let product_pointer := CONSISTENCY_PRODUCTS_BASE_0
+                    let next_product_pointer := CONSISTENCY_PRODUCTS_BASE_1
+                    let denom_pointer := CONSISTENCY_DENOMINATORS_BASE_1
+                    mstore(CONSISTENCY_PRODUCTS_BASE_0, mload(CONSISTENCY_DENOMINATORS_BASE_0))
+                    for { } lt(next_product_pointer, LATER_SCRATCH_SPACE) { } {
                         mstore(
-                            add(CONSISTENCY_PRODUCTS_BASE, mul(idx, 0x20)),
+                            next_product_pointer,
                             mulmod(
-                                mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
-                                mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                                mload(product_pointer),
+                                mload(denom_pointer),
                                 p
                             )
                         )
+                        product_pointer := next_product_pointer
+                        next_product_pointer := add(next_product_pointer, 0x20)
+                        denom_pointer := add(denom_pointer, 0x20)
                     }
 
                     // Invert the final product
-                    let final_prod := mload(add(CONSISTENCY_PRODUCTS_BASE, mul(255, 0x20)))
+                    let final_prod := mload(CONSISTENCY_PRODUCTS_BASE_255)
                     mstore(0x00, 0x20)
                     mstore(0x20, 0x20)
                     mstore(0x40, 0x20)
@@ -2846,47 +2856,56 @@ contract HonkVerifier is IVerifier {
                         mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
                         revert(0x00, 0x04)
                     }
-                    let running_inv := mload(0x00)
+                    let accumulator := mload(0x00)
 
                     // Backward pass: compute individual inverses
-                    for { let idx := 255 } gt(idx, 0) { idx := sub(idx, 1) } {
-                        let this_inv := mulmod(
-                            running_inv,
-                            mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
+                    let products_pointer := CONSISTENCY_PRODUCTS_BASE_254
+                    let denoms_pointer := CONSISTENCY_DENOMINATORS_BASE_255
+                    for { } gt(denoms_pointer, CONSISTENCY_DENOMINATORS_BASE_0) { } {
+                        let val := mulmod(
+                            accumulator,
+                            mload(products_pointer),
                             p
                         )
-                        running_inv := mulmod(
-                            running_inv,
-                            mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                        accumulator := mulmod(
+                            accumulator,
+                            mload(denoms_pointer),
                             p
                         )
-                        mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), this_inv)
+                        mstore(denoms_pointer, val)
+
+                        products_pointer := sub(products_pointer, 0x20)
+                        denoms_pointer := sub(denoms_pointer, 0x20)
                     }
                     // idx=0: running_inv is the inverse of denom[0]
-                    mstore(CONSISTENCY_DENOMINATORS_BASE, running_inv)
+                    mstore(CONSISTENCY_DENOMINATORS_BASE_0, accumulator)
                 }
 
                 // Step 5: Compute challengePolyEval = sum(lagrange[i] * invDenom[i]) * numerator
                 let challenge_poly_eval := 0
-                for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                let lagrange_pointer := CHALLENGE_POLY_LAGRANGE_BASE_0
+                let denom_pointer := CONSISTENCY_DENOMINATORS_BASE_0
+                for { } lt(lagrange_pointer, CONSISTENCY_DENOMINATORS_BASE_0) { } {
                     challenge_poly_eval := addmod(
                         challenge_poly_eval,
                         mulmod(
-                            mload(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(idx, 0x20))),
-                            mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                            mload(lagrange_pointer),
+                            mload(denom_pointer),
                             p
                         ),
                         p
                     )
+                    lagrange_pointer := add(lagrange_pointer, 0x20)
+                    denom_pointer := add(denom_pointer, 0x20)
                 }
 
                 // numerator = vanishingPolyEval / SUBGROUP_SIZE
                 let numerator := mulmod(vanishing_poly_eval, INV_SUBGROUP_SIZE, p)
                 challenge_poly_eval := mulmod(challenge_poly_eval, numerator, p)
 
-                let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE), numerator, p)
+                let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE_0), numerator, p)
                 let lagrange_last := mulmod(
-                    mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(255, 0x20))),
+                    mload(CONSISTENCY_DENOMINATORS_BASE_255),
                     numerator,
                     p
                 )
@@ -3410,7 +3429,7 @@ contract HonkVerifier is IVerifier {
                 {
                     // scalar[52] * libraConcat (libraCommitments[0])
                     mcopy(G1_LOCATION, LIBRA_CONCAT_X_LOC, 0x40)
-                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_52_LOC))
+                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_0 }}_LOC))
                     precomp_success_flag := and(
                         precomp_success_flag,
                         staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -3422,7 +3441,7 @@ contract HonkVerifier is IVerifier {
 
                     // scalar[53] * libraGrandProduct (libraCommitments[1])
                     mcopy(G1_LOCATION, LIBRA_GRAND_PRODUCT_X_LOC, 0x40)
-                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_53_LOC))
+                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_1 }}_LOC))
                     precomp_success_flag := and(
                         precomp_success_flag,
                         staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
@@ -3434,7 +3453,7 @@ contract HonkVerifier is IVerifier {
 
                     // scalar[54] * libraQuotient (libraCommitments[2])
                     mcopy(G1_LOCATION, LIBRA_QUOTIENT_X_LOC, 0x40)
-                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_54_LOC))
+                    mstore(SCALAR_LOCATION, mload(BATCH_SCALAR_{{ LIBRA_BATCH_SCALAR_2 }}_LOC))
                     precomp_success_flag := and(
                         precomp_success_flag,
                         staticcall(gas(), 7, G1_LOCATION, 0x60, ACCUMULATOR_2, 0x40)
