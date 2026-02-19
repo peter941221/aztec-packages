@@ -648,9 +648,9 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
             << config.batched_relation_partial_length - 1 << ";\n";
         out << "// 1/SUBGROUP_SIZE mod p (precomputed constant)\n";
 
-        out << "// 1/256 mod p, computed as pow(256, p-2, p) where p = BN254 scalar field modulus\n" out
-            << "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001\n" out
-            << "uint256 internal constant INV_SUBGROUP_SIZE = "
+        out << "// 1/256 mod p, computed as pow(256, p-2, p) where p = BN254 scalar field modulus\n";
+        out << "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001\n";
+        out << "uint256 internal constant INV_SUBGROUP_SIZE = "
                "0x3033ea246e506e898e97f570caffd704cb0bb460313fb720b29e139e5c100001;\n";
     }
 
