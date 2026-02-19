@@ -173,32 +173,6 @@ awk '
     { print }
 ' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
 
-# Process the file to remove code inside GEMINI_FOLD_UNIVARIATE_ON_CURVE section while preserving the markers
-# (Only exists in non-ZK template; ZK template doesn't have this section)
-if [ "$ZK_MODE" = false ]; then
-awk '
-    BEGIN {
-        in_gemini_fold = 0
-    }
-    # Detect UNROLL_SECTION_START GEMINI_FOLD_UNIVARIATE_ON_CURVE
-    /\/\/\/ \{\{ UNROLL_SECTION_START GEMINI_FOLD_UNIVARIATE_ON_CURVE \}\}/ {
-        print  # Print the start marker
-        in_gemini_fold = 1
-        next
-    }
-    # Detect UNROLL_SECTION_END GEMINI_FOLD_UNIVARIATE_ON_CURVE
-    /\/\/\/ \{\{ UNROLL_SECTION_END GEMINI_FOLD_UNIVARIATE_ON_CURVE \}\}/ {
-        print  # Print the end marker
-        in_gemini_fold = 0
-        next
-    }
-    # Skip lines inside gemini fold section
-    in_gemini_fold { next }
-    # Print all other lines
-    { print }
-' "$TEMP_SOL" > "${TEMP_SOL}.tmp" && mv "${TEMP_SOL}.tmp" "$TEMP_SOL"
-fi
-
 # Process the file to remove code inside MEMORY_LAYOUT section while preserving the markers
 awk '
     BEGIN {

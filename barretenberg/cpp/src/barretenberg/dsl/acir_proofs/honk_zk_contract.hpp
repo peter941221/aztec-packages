@@ -2254,6 +2254,7 @@ abstract contract BaseZKHonkVerifier is IVerifier {
             mem.rootPower = mem.rootPower * SUBGROUP_GENERATOR_INVERSE;
         }
 
+        // MD: SUBGROUP_SIZE.invert() can be a constant
         Fr numerator = vanishingPolyEval * Fr.wrap(SUBGROUP_SIZE).invert();
         mem.challengePolyEval = mem.challengePolyEval * numerator;
         mem.lagrangeFirst = mem.denominators[0] * numerator;

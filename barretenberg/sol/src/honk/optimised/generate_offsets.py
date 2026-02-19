@@ -376,9 +376,9 @@ def print_batch_scalars(pointer: int):
 
     return pointer
 
-def print_powers_of_evaluation_challenge(pointer: int):
+def print_POWERS_OF_EVALUATION_COMPUTATION(pointer: int):
     for i in range(0, PROOF_SIZE_LOG_N):
-        print_fr(pointer, "POWERS_OF_EVALUATION_CHALLENGE_" + str(i) + "_LOC")
+        print_fr(pointer, "POWERS_OF_EVALUATION_COMPUTATION_" + str(i) + "_LOC")
         pointer += FIELD_ELEMENT_BYTES
     return pointer
 
@@ -578,7 +578,7 @@ def main():
 
     print_header_centered("SHPLEMINI - RUNTIME MEMORY")
     print_header_centered("SHPLEMINI - POWERS OF EVALUATION CHALLENGE")
-    pointer = print_powers_of_evaluation_challenge(pointer)
+    pointer = print_POWERS_OF_EVALUATION_COMPUTATION(pointer)
     print_header_centered("SHPLEMINI - POWERS OF EVALUATION CHALLENGE COMPLETE")
 
     # This is a temporary method to write where the batch scalars should be
