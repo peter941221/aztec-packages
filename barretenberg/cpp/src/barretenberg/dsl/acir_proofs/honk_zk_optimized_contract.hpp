@@ -1,8 +1,12 @@
+// === AUDIT STATUS ===
+// internal:    { status: Planned, auditors: [], commit: }
+// external_1:  { status: not started, auditors: [], commit: }
+// external_2:  { status: not started, auditors: [], commit: }
+// =====================
+
 #pragma once
+
 #include "honk_optimized_common.hpp"
-#include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -1055,6 +1059,7 @@ contract HonkVerifier is IVerifier {
 
                         // --- Shplemini backward pass ---
                         // Extract shplemini inverses in strict reverse order.
+                        {
                         /// {{ UNROLL_SECTION_START COLLECT_INVERSES }}
                             /// {{ UNROLL_SECTION_END COLLECT_INVERSES }}
 
@@ -1118,14 +1123,14 @@ contract HonkVerifier is IVerifier {
 
                     // Compute next target sum (ZK: 9-element domain)
                     let numerator_value := round_challenge
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_1, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_2, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_3, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_4, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_5, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_6, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_7, p), p)
-                    numerator_value := mulmod(numerator_value, addmod(round_challenge, P_SUB_8, p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 1), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 2), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 3), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 4), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 5), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 6), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 7), p), p)
+                    numerator_value := mulmod(numerator_value, addmod(round_challenge, sub(p, 8), p), p)
 
                     // // Compute the next round target
                     round_target := 0
@@ -3625,7 +3630,6 @@ inline std::string get_optimized_honk_zk_solidity_verifier(auto const& verificat
     int log_n = static_cast<int>(verification_key->log_circuit_size);
     UnrollConfig unroll_config{
         .batch_scalar_offset = 38,
-        .collect_inverses_opening_brace = true,
     };
 
     replace_unroll_section(template_str, "POWERS_OF_EVALUATION_COMPUTATION", log_n, unroll_config);
@@ -3633,17 +3637,18 @@ inline std::string get_optimized_honk_zk_solidity_verifier(auto const& verificat
     replace_unroll_section(template_str, "COLLECT_INVERSES", log_n, unroll_config);
     replace_unroll_section(template_str, "ACCUMULATE_GEMINI_FOLD_UNIVARIATE", log_n, unroll_config);
 
+    MemoryLayoutConfig mem_config{
+        .batched_relation_partial_length = 9,
+        .barycentric_domain_size = 9,
+        .is_zk = true,
+    };
+    replace_memory_layout(template_str, log_n, mem_config);
     // Replace Memory Layout
     {
         std::string::size_type start_pos = template_str.find("// {{ SECTION_START MEMORY_LAYOUT }}");
         std::string::size_type end_pos = template_str.find("// {{ SECTION_END MEMORY_LAYOUT }}");
         if (start_pos != std::string::npos && end_pos != std::string::npos) {
             std::string::size_type start_line_end = template_str.find("\n", start_pos);
-            MemoryLayoutConfig mem_config{
-                .batched_relation_partial_length = 9,
-                .barycentric_domain_size = 9,
-                .is_zk = true,
-            };
             std::string generated_code = generate_memory_offsets(log_n, mem_config);
             template_str = template_str.substr(0, start_line_end + 1) + generated_code + template_str.substr(end_pos);
         }

@@ -3267,8 +3267,8 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                         // --- Shplemini backward pass ---
                         // Extract shplemini inverses in strict reverse order.
-                        /// {{ UNROLL_SECTION_START COLLECT_INVERSES }}
                         {
+                        /// {{ UNROLL_SECTION_START COLLECT_INVERSES }}
                             // NEG_INVERTED_DENOM (LOG_N elements, reverse) -- last group appended
                             // NEG_INVERTED_DENOM_14 inverse
                             {

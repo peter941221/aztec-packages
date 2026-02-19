@@ -31,9 +31,6 @@ inline std::string int_to_hex(size_t i)
 // Configuration for unroll section generation that varies between ZK and non-ZK verifiers.
 struct UnrollConfig {
     int batch_scalar_offset; // 37 (non-ZK) or 38 (ZK)
-
-    // TODO: can solve this problem myself - we should not need to do this here
-    bool collect_inverses_opening_brace; // true for ZK (template has closing } outside markers), false for non-ZK
 };
 
 // Generate the Solidity assembly code for a given unroll section.
@@ -98,11 +95,6 @@ inline std::string generate_unroll_section(const std::string& section_name, int 
         }
     } else if (section_name == "COLLECT_INVERSES") {
         int temp_idx = 3 * log_n - 1;
-
-        if (config.collect_inverses_opening_brace) {
-            // Open a block that is closed by the `}` after the UNROLL_SECTION_END marker in the template
-            code << "                        {\n";
-        }
 
         // Process NEG_INVERTED_DENOM in reverse order
         code << "                       // i = " << log_n << "\n";
@@ -186,6 +178,13 @@ inline void replace_unroll_section(std::string& template_str,
     std::string end_marker = "/// {{ UNROLL_SECTION_END " + section_name + " }}";
     std::string::size_type start_pos = template_str.find(start_marker);
     std::string::size_type end_pos = template_str.find(end_marker);
+
+    // Sanity check - much better to fail now if an expected template is missing - check whitespace matches exactly
+    if (start_pos == std::string::npos || end_pos == std::string::npos) {
+        info("Missing unroll markers for section: " + section_name);
+        std::abort();
+    }
+
     if (start_pos != std::string::npos && end_pos != std::string::npos) {
         std::string::size_type start_line_end = template_str.find("\n", start_pos);
         std::string generated_code = generate_unroll_section(section_name, log_n, config);
@@ -648,7 +647,10 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
         out << "uint256 internal constant LIBRA_UNIVARIATES_LENGTH_MINUS_ONE = " << std::showbase << std::hex
             << config.batched_relation_partial_length - 1 << ";\n";
         out << "// 1/SUBGROUP_SIZE mod p (precomputed constant)\n";
-        out << "uint256 internal constant INV_SUBGROUP_SIZE = "
+
+        out << "// 1/256 mod p, computed as pow(256, p-2, p) where p = BN254 scalar field modulus\n" out
+            << "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001\n" out
+            << "uint256 internal constant INV_SUBGROUP_SIZE = "
                "0x3033ea246e506e898e97f570caffd704cb0bb460313fb720b29e139e5c100001;\n";
     }
 
@@ -679,6 +681,19 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
     return out.str();
 }
 
+/// Find the memory layout tags then insert generated layout into the offsets
+inline void replace_memory_layout(std::string& template_str, int log_n, const MemoryLayoutConfig& mem_config)
+{
+    std::string::size_type start_pos = template_str.find("// {{ SECTION_START MEMORY_LAYOUT }}");
+    std::string::size_type end_pos = template_str.find("// {{ SECTION_END MEMORY_LAYOUT }}");
+
+    if (start_pos != std::string::npos && end_pos != std::string::npos) {
+        std::string::size_type start_line_end = template_str.find("\n", start_pos);
+        std::string generated_code = generate_memory_offsets(log_n, mem_config);
+        template_str = template_str.substr(0, start_line_end + 1) + generated_code + template_str.substr(end_pos);
+    }
+}
+
 // Apply all template parameter substitutions for the optimized verifier.
 // This handles VK hash, circuit parameters, gemini fold lengths, and all 56 VK field substitutions.
 // The is_zk flag controls ZK-specific parameters (BATCHED_RELATION_PARTIAL_LENGTH_MINUS_ONE,
@@ -696,6 +711,18 @@ inline void apply_template_params(std::string& template_str, VK const& verificat
     };
 
     auto log_circuit_size = verification_key->log_circuit_size;
+
+    // larger overflows int, sanity check not 0
+    if (log_circuit_size > 31 || log_circuit_size < 1) {
+        info("log_circuit_size out of bounds | 0 < x < 31 | x = " + std::to_string(log_circuit_size));
+        std::abort();
+    }
+
+    if (verification_key->num_public_inputs < bb::PAIRING_POINTS_SIZE) {
+        info("invariant broken: public input points are smaller than pairing points (they are usually appended)");
+        std::abort();
+    }
+
     set_template_param("VK_HASH", field_to_hex(verification_key->hash()));
     set_template_param("CIRCUIT_SIZE", std::to_string(1 << log_circuit_size));
     set_template_param("LOG_CIRCUIT_SIZE", std::to_string(log_circuit_size));

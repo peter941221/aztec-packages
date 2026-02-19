@@ -6,9 +6,6 @@
 
 #pragma once
 #include "honk_optimized_common.hpp"
-#include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -64,7 +61,7 @@ contract HonkVerifier is IVerifier {
      *                    Subrelation intermediates (7 slots: round target, pow, AUX)
      *                    Powers of evaluation challenge (LOG_N slots)
      *                    Batch scalars (69 slots, for MSM)
-     *                LATER_SCRATCH_SPACE (batch inversion products marker)
+                   LATER_SCRATCH_SPACE (batch inversion products marker)
      *                    Temporary space (45 slots, ephemeral computation)
      *
      * LOW MEMORY / SCRATCH SPACE (two temporally disjoint overlapping phases):
@@ -74,7 +71,7 @@ contract HonkVerifier is IVerifier {
      *                    Barycentric denominator inverses (LOG_N x 8 = 120 slots)
      *                     [Slots at 0x1000-0x10E0 overlap VK data; VK is re-loaded later]
      *
-     *  // TODO: this is not necessary correct anymore - phase 1 and two are now done at the same time
+     // TODO: this is not necessary correct anymore - phase 1 and two are now done at the same time
      *   Phase 2 (Shplemini -- after sumcheck completes, reuses same addresses):
      *                    Gemini R inverse (1 slot)
      *                    Inverted Gemini denominators (LOG_N+1 = 16 slots)
@@ -299,17 +296,16 @@ contract HonkVerifier is IVerifier {
                 // Expected = (8*2 + LOG_N*BATCHED_RELATION_PARTIAL_LENGTH + NUMBER_OF_ENTITIES
                 //             + (LOG_N-1)*2 + LOG_N + 2*2 + PAIRING_POINTS_SIZE) * 32
                 {
-                    let expected_proof_size :=
-                        mul(
+                    let expected_proof_size := mul(
+                        add(
                             add(
-                                add(
-                                    add(16, mul(LOG_N, BATCHED_RELATION_PARTIAL_LENGTH)),
-                                    add(NUMBER_OF_ENTITIES, mul(sub(LOG_N, 1), 2))
-                                ),
-                                add(add(LOG_N, 4), PAIRING_POINTS_SIZE)
+                                add(16, mul(LOG_N, BATCHED_RELATION_PARTIAL_LENGTH)),
+                                add(NUMBER_OF_ENTITIES, mul(sub(LOG_N, 1), 2))
                             ),
-                            32
-                        )
+                            add(add(LOG_N, 4), PAIRING_POINTS_SIZE)
+                        ),
+                        32
+                    )
                     let proof_length := calldataload(add(calldataload(0x04), 0x04))
                     if iszero(eq(proof_length, expected_proof_size)) {
                         mstore(0x00, PROOF_LENGTH_WRONG_WITH_LOG_N_SELECTOR)
@@ -922,7 +918,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 6
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_6, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 6), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -934,7 +930,7 @@ contract HonkVerifier is IVerifier {
 
                                 // barycentric_index = 7
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_7, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 7), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -1315,8 +1311,7 @@ contract HonkVerifier is IVerifier {
                         p
                     )
 
-                    let accumulator_none :=
-                        mulmod(mulmod(lookup_term, table_term, p), mload(LOOKUP_INVERSES_EVAL_LOC), p)
+                    let accumulator_none := mulmod(mulmod(lookup_term, table_term, p), mload(LOOKUP_INVERSES_EVAL_LOC), p)
                     accumulator_none := addmod(accumulator_none, sub(p, inverse_exists_xor), p)
                     accumulator_none := mulmod(accumulator_none, mload(POW_PARTIAL_EVALUATION_LOC), p)
 
@@ -2563,7 +2558,7 @@ contract HonkVerifier is IVerifier {
                 let shplonk_nu := mload(SHPLONK_NU_CHALLENGE)
 
                 constant_term_acc := addmod(
-                    constant_term_acc,
+                   constant_term_acc,
                     mulmod(mload(GEMINI_A_EVAL_0), mulmod(shplonk_nu, mload(NEG_INVERTED_DENOM_0_LOC), p), p),
                     p
                 )
@@ -3122,9 +3117,10 @@ contract HonkVerifier is IVerifier {
                     // Only aggregate if pairing points are non-default
                     if iszero(pairing_points_are_default) {
                         // Reconstructed coordinates must be < Q to prevent malleability
-                        if iszero(
-                            and(and(lt(p0_other_x, q), lt(p0_other_y, q)), and(lt(p1_other_x, q), lt(p1_other_y, q)))
-                        ) {
+                        if iszero(and(
+                            and(lt(p0_other_x, q), lt(p0_other_y, q)),
+                            and(lt(p1_other_x, q), lt(p1_other_y, q))
+                        )) {
                             mstore(0x00, VALUE_GE_GROUP_ORDER_SELECTOR)
                             revert(0x00, 0x04)
                         }
@@ -3219,7 +3215,6 @@ inline std::string get_optimized_honk_solidity_verifier(auto const& verification
     int log_n = static_cast<int>(verification_key->log_circuit_size);
     UnrollConfig unroll_config{
         .batch_scalar_offset = 37,
-        .collect_inverses_opening_brace = false,
     };
 
     replace_unroll_section(template_str, "POWERS_OF_EVALUATION_COMPUTATION", log_n, unroll_config);
@@ -3227,21 +3222,12 @@ inline std::string get_optimized_honk_solidity_verifier(auto const& verification
     replace_unroll_section(template_str, "COLLECT_INVERSES", log_n, unroll_config);
     replace_unroll_section(template_str, "ACCUMULATE_GEMINI_FOLD_UNIVARIATE", log_n, unroll_config);
 
-    // Replace Memory Layout
-    {
-        std::string::size_type start_pos = template_str.find("// {{ SECTION_START MEMORY_LAYOUT }}");
-        std::string::size_type end_pos = template_str.find("// {{ SECTION_END MEMORY_LAYOUT }}");
-        if (start_pos != std::string::npos && end_pos != std::string::npos) {
-            std::string::size_type start_line_end = template_str.find("\n", start_pos);
-            MemoryLayoutConfig mem_config{
-                .batched_relation_partial_length = 8,
-                .barycentric_domain_size = 8,
-                .is_zk = false,
-            };
-            std::string generated_code = generate_memory_offsets(log_n, mem_config);
-            template_str = template_str.substr(0, start_line_end + 1) + generated_code + template_str.substr(end_pos);
-        }
-    }
+    MemoryLayoutConfig mem_config{
+        .batched_relation_partial_length = 8,
+        .barycentric_domain_size = 8,
+        .is_zk = false,
+    };
+    replace_memory_layout(template_str, log_n, mem_config);
 
     return template_str;
 }
