@@ -16,4 +16,4 @@ echo "✓ VK generation complete"
 # Sync honk-optimized.sol with generated Blake VK
 echo ""
 echo "Syncing honk-optimized.sol with generated Blake VK..."
-./scripts/sync_blake_opt_vk.sh
+./scripts/sync_blake_opt_vk.sh --all

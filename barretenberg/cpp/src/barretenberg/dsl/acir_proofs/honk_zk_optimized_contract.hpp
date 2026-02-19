@@ -222,8 +222,8 @@ contract HonkVerifier is IVerifier {
     bytes4 internal constant PUBLIC_INPUTS_LENGTH_WRONG_SELECTOR = 0xfa066593;
 
     bytes4 internal constant MODEXP_FAILED_SELECTOR = 0xf442f163;
-    bytes4 internal constant CONSISTENCY_CHECK_FAILED_SELECTOR = 0x535e1493;
-    bytes4 internal constant GEMINI_CHALLENGE_IN_SUBGROUP_SELECTOR = 0x33c4aa73;
+    bytes4 internal constant CONSISTENCY_CHECK_FAILED_SELECTOR = 0xa2a2ac83;
+    bytes4 internal constant GEMINI_CHALLENGE_IN_SUBGROUP_SELECTOR = 0x835eb8f7;
 
     constructor() {}
 

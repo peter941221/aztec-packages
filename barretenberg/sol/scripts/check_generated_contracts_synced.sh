@@ -23,6 +23,7 @@ done
 # Regenerate all three files
 "$SCRIPT_DIR/copy_to_cpp.sh" -f
 "$SCRIPT_DIR/copy_optimized_to_cpp.sh" -f
+"$SCRIPT_DIR/copy_optimized_to_cpp.sh" -f --zk
 
 # Compare and collect failures
 FAILED=0
