@@ -1132,9 +1132,783 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     uint256 internal constant  TEMP_43_LOC  =  0x8480 ;
     uint256 internal constant  TEMP_44_LOC  =  0x84a0 ;
 
-    uint256 internal constant  LATER_SCRATCH_SPACE  =  0x84c0 ;
 
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                       Small Subgroup IPA                   */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+    // Allocating clean memory here comes out to about a 4k gas overhead
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_0 = 0x9f00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_1 = 0x9f20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_2 = 0x9f40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_3 = 0x9f60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_4 = 0x9f80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_5 = 0x9fa0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_6 = 0x9fc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_7 = 0x9fe0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_8 = 0xa000;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_9 = 0xa020;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_10 = 0xa040;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_11 = 0xa060;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_12 = 0xa080;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_13 = 0xa0a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_14 = 0xa0c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_15 = 0xa0e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_16 = 0xa100;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_17 = 0xa120;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_18 = 0xa140;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_19 = 0xa160;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_20 = 0xa180;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_21 = 0xa1a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_22 = 0xa1c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_23 = 0xa1e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_24 = 0xa200;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_25 = 0xa220;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_26 = 0xa240;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_27 = 0xa260;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_28 = 0xa280;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_29 = 0xa2a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_30 = 0xa2c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_31 = 0xa2e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_32 = 0xa300;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_33 = 0xa320;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_34 = 0xa340;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_35 = 0xa360;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_36 = 0xa380;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_37 = 0xa3a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_38 = 0xa3c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_39 = 0xa3e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_40 = 0xa400;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_41 = 0xa420;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_42 = 0xa440;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_43 = 0xa460;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_44 = 0xa480;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_45 = 0xa4a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_46 = 0xa4c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_47 = 0xa4e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_48 = 0xa500;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_49 = 0xa520;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_50 = 0xa540;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_51 = 0xa560;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_52 = 0xa580;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_53 = 0xa5a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_54 = 0xa5c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_55 = 0xa5e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_56 = 0xa600;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_57 = 0xa620;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_58 = 0xa640;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_59 = 0xa660;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_60 = 0xa680;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_61 = 0xa6a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_62 = 0xa6c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_63 = 0xa6e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_64 = 0xa700;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_65 = 0xa720;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_66 = 0xa740;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_67 = 0xa760;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_68 = 0xa780;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_69 = 0xa7a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_70 = 0xa7c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_71 = 0xa7e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_72 = 0xa800;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_73 = 0xa820;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_74 = 0xa840;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_75 = 0xa860;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_76 = 0xa880;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_77 = 0xa8a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_78 = 0xa8c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_79 = 0xa8e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_80 = 0xa900;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_81 = 0xa920;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_82 = 0xa940;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_83 = 0xa960;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_84 = 0xa980;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_85 = 0xa9a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_86 = 0xa9c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_87 = 0xa9e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_88 = 0xaa00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_89 = 0xaa20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_90 = 0xaa40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_91 = 0xaa60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_92 = 0xaa80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_93 = 0xaaa0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_94 = 0xaac0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_95 = 0xaae0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_96 = 0xab00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_97 = 0xab20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_98 = 0xab40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_99 = 0xab60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_100 = 0xab80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_101 = 0xaba0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_102 = 0xabc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_103 = 0xabe0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_104 = 0xac00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_105 = 0xac20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_106 = 0xac40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_107 = 0xac60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_108 = 0xac80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_109 = 0xaca0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_110 = 0xacc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_111 = 0xace0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_112 = 0xad00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_113 = 0xad20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_114 = 0xad40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_115 = 0xad60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_116 = 0xad80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_117 = 0xada0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_118 = 0xadc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_119 = 0xade0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_120 = 0xae00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_121 = 0xae20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_122 = 0xae40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_123 = 0xae60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_124 = 0xae80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_125 = 0xaea0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_126 = 0xaec0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_127 = 0xaee0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_128 = 0xaf00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_129 = 0xaf20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_130 = 0xaf40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_131 = 0xaf60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_132 = 0xaf80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_133 = 0xafa0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_134 = 0xafc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_135 = 0xafe0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_136 = 0xb000;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_137 = 0xb020;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_138 = 0xb040;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_139 = 0xb060;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_140 = 0xb080;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_141 = 0xb0a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_142 = 0xb0c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_143 = 0xb0e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_144 = 0xb100;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_145 = 0xb120;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_146 = 0xb140;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_147 = 0xb160;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_148 = 0xb180;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_149 = 0xb1a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_150 = 0xb1c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_151 = 0xb1e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_152 = 0xb200;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_153 = 0xb220;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_154 = 0xb240;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_155 = 0xb260;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_156 = 0xb280;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_157 = 0xb2a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_158 = 0xb2c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_159 = 0xb2e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_160 = 0xb300;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_161 = 0xb320;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_162 = 0xb340;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_163 = 0xb360;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_164 = 0xb380;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_165 = 0xb3a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_166 = 0xb3c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_167 = 0xb3e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_168 = 0xb400;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_169 = 0xb420;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_170 = 0xb440;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_171 = 0xb460;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_172 = 0xb480;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_173 = 0xb4a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_174 = 0xb4c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_175 = 0xb4e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_176 = 0xb500;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_177 = 0xb520;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_178 = 0xb540;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_179 = 0xb560;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_180 = 0xb580;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_181 = 0xb5a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_182 = 0xb5c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_183 = 0xb5e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_184 = 0xb600;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_185 = 0xb620;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_186 = 0xb640;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_187 = 0xb660;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_188 = 0xb680;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_189 = 0xb6a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_190 = 0xb6c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_191 = 0xb6e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_192 = 0xb700;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_193 = 0xb720;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_194 = 0xb740;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_195 = 0xb760;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_196 = 0xb780;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_197 = 0xb7a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_198 = 0xb7c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_199 = 0xb7e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_200 = 0xb800;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_201 = 0xb820;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_202 = 0xb840;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_203 = 0xb860;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_204 = 0xb880;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_205 = 0xb8a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_206 = 0xb8c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_207 = 0xb8e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_208 = 0xb900;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_209 = 0xb920;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_210 = 0xb940;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_211 = 0xb960;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_212 = 0xb980;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_213 = 0xb9a0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_214 = 0xb9c0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_215 = 0xb9e0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_216 = 0xba00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_217 = 0xba20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_218 = 0xba40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_219 = 0xba60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_220 = 0xba80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_221 = 0xbaa0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_222 = 0xbac0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_223 = 0xbae0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_224 = 0xbb00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_225 = 0xbb20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_226 = 0xbb40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_227 = 0xbb60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_228 = 0xbb80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_229 = 0xbba0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_230 = 0xbbc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_231 = 0xbbe0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_232 = 0xbc00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_233 = 0xbc20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_234 = 0xbc40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_235 = 0xbc60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_236 = 0xbc80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_237 = 0xbca0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_238 = 0xbcc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_239 = 0xbce0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_240 = 0xbd00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_241 = 0xbd20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_242 = 0xbd40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_243 = 0xbd60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_244 = 0xbd80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_245 = 0xbda0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_246 = 0xbdc0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_247 = 0xbde0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_248 = 0xbe00;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_249 = 0xbe20;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_250 = 0xbe40;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_251 = 0xbe60;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_252 = 0xbe80;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_253 = 0xbea0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_254 = 0xbec0;
+    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE_255 = 0xbee0;
 
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_0 = 0xbf00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_1 = 0xbf20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_2 = 0xbf40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_3 = 0xbf60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_4 = 0xbf80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_5 = 0xbfa0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_6 = 0xbfc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_7 = 0xbfe0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_8 = 0xc000;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_9 = 0xc020;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_10 = 0xc040;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_11 = 0xc060;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_12 = 0xc080;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_13 = 0xc0a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_14 = 0xc0c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_15 = 0xc0e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_16 = 0xc100;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_17 = 0xc120;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_18 = 0xc140;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_19 = 0xc160;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_20 = 0xc180;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_21 = 0xc1a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_22 = 0xc1c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_23 = 0xc1e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_24 = 0xc200;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_25 = 0xc220;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_26 = 0xc240;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_27 = 0xc260;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_28 = 0xc280;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_29 = 0xc2a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_30 = 0xc2c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_31 = 0xc2e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_32 = 0xc300;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_33 = 0xc320;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_34 = 0xc340;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_35 = 0xc360;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_36 = 0xc380;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_37 = 0xc3a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_38 = 0xc3c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_39 = 0xc3e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_40 = 0xc400;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_41 = 0xc420;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_42 = 0xc440;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_43 = 0xc460;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_44 = 0xc480;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_45 = 0xc4a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_46 = 0xc4c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_47 = 0xc4e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_48 = 0xc500;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_49 = 0xc520;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_50 = 0xc540;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_51 = 0xc560;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_52 = 0xc580;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_53 = 0xc5a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_54 = 0xc5c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_55 = 0xc5e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_56 = 0xc600;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_57 = 0xc620;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_58 = 0xc640;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_59 = 0xc660;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_60 = 0xc680;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_61 = 0xc6a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_62 = 0xc6c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_63 = 0xc6e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_64 = 0xc700;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_65 = 0xc720;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_66 = 0xc740;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_67 = 0xc760;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_68 = 0xc780;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_69 = 0xc7a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_70 = 0xc7c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_71 = 0xc7e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_72 = 0xc800;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_73 = 0xc820;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_74 = 0xc840;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_75 = 0xc860;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_76 = 0xc880;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_77 = 0xc8a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_78 = 0xc8c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_79 = 0xc8e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_80 = 0xc900;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_81 = 0xc920;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_82 = 0xc940;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_83 = 0xc960;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_84 = 0xc980;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_85 = 0xc9a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_86 = 0xc9c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_87 = 0xc9e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_88 = 0xca00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_89 = 0xca20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_90 = 0xca40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_91 = 0xca60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_92 = 0xca80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_93 = 0xcaa0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_94 = 0xcac0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_95 = 0xcae0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_96 = 0xcb00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_97 = 0xcb20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_98 = 0xcb40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_99 = 0xcb60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_100 = 0xcb80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_101 = 0xcba0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_102 = 0xcbc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_103 = 0xcbe0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_104 = 0xcc00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_105 = 0xcc20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_106 = 0xcc40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_107 = 0xcc60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_108 = 0xcc80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_109 = 0xcca0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_110 = 0xccc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_111 = 0xcce0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_112 = 0xcd00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_113 = 0xcd20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_114 = 0xcd40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_115 = 0xcd60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_116 = 0xcd80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_117 = 0xcda0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_118 = 0xcdc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_119 = 0xcde0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_120 = 0xce00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_121 = 0xce20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_122 = 0xce40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_123 = 0xce60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_124 = 0xce80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_125 = 0xcea0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_126 = 0xcec0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_127 = 0xcee0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_128 = 0xcf00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_129 = 0xcf20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_130 = 0xcf40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_131 = 0xcf60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_132 = 0xcf80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_133 = 0xcfa0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_134 = 0xcfc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_135 = 0xcfe0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_136 = 0xd000;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_137 = 0xd020;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_138 = 0xd040;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_139 = 0xd060;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_140 = 0xd080;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_141 = 0xd0a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_142 = 0xd0c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_143 = 0xd0e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_144 = 0xd100;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_145 = 0xd120;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_146 = 0xd140;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_147 = 0xd160;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_148 = 0xd180;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_149 = 0xd1a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_150 = 0xd1c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_151 = 0xd1e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_152 = 0xd200;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_153 = 0xd220;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_154 = 0xd240;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_155 = 0xd260;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_156 = 0xd280;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_157 = 0xd2a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_158 = 0xd2c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_159 = 0xd2e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_160 = 0xd300;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_161 = 0xd320;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_162 = 0xd340;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_163 = 0xd360;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_164 = 0xd380;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_165 = 0xd3a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_166 = 0xd3c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_167 = 0xd3e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_168 = 0xd400;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_169 = 0xd420;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_170 = 0xd440;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_171 = 0xd460;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_172 = 0xd480;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_173 = 0xd4a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_174 = 0xd4c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_175 = 0xd4e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_176 = 0xd500;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_177 = 0xd520;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_178 = 0xd540;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_179 = 0xd560;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_180 = 0xd580;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_181 = 0xd5a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_182 = 0xd5c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_183 = 0xd5e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_184 = 0xd600;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_185 = 0xd620;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_186 = 0xd640;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_187 = 0xd660;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_188 = 0xd680;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_189 = 0xd6a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_190 = 0xd6c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_191 = 0xd6e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_192 = 0xd700;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_193 = 0xd720;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_194 = 0xd740;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_195 = 0xd760;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_196 = 0xd780;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_197 = 0xd7a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_198 = 0xd7c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_199 = 0xd7e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_200 = 0xd800;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_201 = 0xd820;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_202 = 0xd840;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_203 = 0xd860;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_204 = 0xd880;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_205 = 0xd8a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_206 = 0xd8c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_207 = 0xd8e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_208 = 0xd900;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_209 = 0xd920;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_210 = 0xd940;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_211 = 0xd960;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_212 = 0xd980;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_213 = 0xd9a0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_214 = 0xd9c0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_215 = 0xd9e0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_216 = 0xda00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_217 = 0xda20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_218 = 0xda40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_219 = 0xda60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_220 = 0xda80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_221 = 0xdaa0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_222 = 0xdac0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_223 = 0xdae0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_224 = 0xdb00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_225 = 0xdb20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_226 = 0xdb40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_227 = 0xdb60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_228 = 0xdb80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_229 = 0xdba0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_230 = 0xdbc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_231 = 0xdbe0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_232 = 0xdc00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_233 = 0xdc20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_234 = 0xdc40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_235 = 0xdc60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_236 = 0xdc80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_237 = 0xdca0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_238 = 0xdcc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_239 = 0xdce0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_240 = 0xdd00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_241 = 0xdd20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_242 = 0xdd40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_243 = 0xdd60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_244 = 0xdd80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_245 = 0xdda0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_246 = 0xddc0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_247 = 0xdde0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_248 = 0xde00;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_249 = 0xde20;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_250 = 0xde40;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_251 = 0xde60;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_252 = 0xde80;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_253 = 0xdea0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_254 = 0xdec0;
+    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE_255 = 0xdee0;
+
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_0 = 0xdf00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_1 = 0xdf20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_2 = 0xdf40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_3 = 0xdf60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_4 = 0xdf80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_5 = 0xdfa0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_6 = 0xdfc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_7 = 0xdfe0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_8 = 0xe000;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_9 = 0xe020;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_10 = 0xe040;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_11 = 0xe060;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_12 = 0xe080;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_13 = 0xe0a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_14 = 0xe0c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_15 = 0xe0e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_16 = 0xe100;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_17 = 0xe120;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_18 = 0xe140;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_19 = 0xe160;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_20 = 0xe180;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_21 = 0xe1a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_22 = 0xe1c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_23 = 0xe1e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_24 = 0xe200;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_25 = 0xe220;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_26 = 0xe240;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_27 = 0xe260;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_28 = 0xe280;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_29 = 0xe2a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_30 = 0xe2c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_31 = 0xe2e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_32 = 0xe300;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_33 = 0xe320;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_34 = 0xe340;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_35 = 0xe360;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_36 = 0xe380;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_37 = 0xe3a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_38 = 0xe3c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_39 = 0xe3e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_40 = 0xe400;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_41 = 0xe420;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_42 = 0xe440;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_43 = 0xe460;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_44 = 0xe480;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_45 = 0xe4a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_46 = 0xe4c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_47 = 0xe4e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_48 = 0xe500;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_49 = 0xe520;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_50 = 0xe540;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_51 = 0xe560;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_52 = 0xe580;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_53 = 0xe5a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_54 = 0xe5c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_55 = 0xe5e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_56 = 0xe600;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_57 = 0xe620;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_58 = 0xe640;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_59 = 0xe660;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_60 = 0xe680;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_61 = 0xe6a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_62 = 0xe6c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_63 = 0xe6e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_64 = 0xe700;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_65 = 0xe720;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_66 = 0xe740;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_67 = 0xe760;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_68 = 0xe780;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_69 = 0xe7a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_70 = 0xe7c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_71 = 0xe7e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_72 = 0xe800;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_73 = 0xe820;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_74 = 0xe840;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_75 = 0xe860;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_76 = 0xe880;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_77 = 0xe8a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_78 = 0xe8c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_79 = 0xe8e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_80 = 0xe900;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_81 = 0xe920;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_82 = 0xe940;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_83 = 0xe960;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_84 = 0xe980;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_85 = 0xe9a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_86 = 0xe9c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_87 = 0xe9e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_88 = 0xea00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_89 = 0xea20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_90 = 0xea40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_91 = 0xea60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_92 = 0xea80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_93 = 0xeaa0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_94 = 0xeac0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_95 = 0xeae0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_96 = 0xeb00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_97 = 0xeb20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_98 = 0xeb40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_99 = 0xeb60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_100 = 0xeb80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_101 = 0xeba0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_102 = 0xebc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_103 = 0xebe0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_104 = 0xec00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_105 = 0xec20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_106 = 0xec40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_107 = 0xec60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_108 = 0xec80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_109 = 0xeca0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_110 = 0xecc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_111 = 0xece0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_112 = 0xed00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_113 = 0xed20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_114 = 0xed40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_115 = 0xed60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_116 = 0xed80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_117 = 0xeda0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_118 = 0xedc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_119 = 0xede0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_120 = 0xee00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_121 = 0xee20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_122 = 0xee40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_123 = 0xee60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_124 = 0xee80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_125 = 0xeea0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_126 = 0xeec0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_127 = 0xeee0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_128 = 0xef00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_129 = 0xef20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_130 = 0xef40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_131 = 0xef60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_132 = 0xef80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_133 = 0xefa0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_134 = 0xefc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_135 = 0xefe0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_136 = 0xf000;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_137 = 0xf020;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_138 = 0xf040;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_139 = 0xf060;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_140 = 0xf080;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_141 = 0xf0a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_142 = 0xf0c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_143 = 0xf0e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_144 = 0xf100;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_145 = 0xf120;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_146 = 0xf140;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_147 = 0xf160;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_148 = 0xf180;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_149 = 0xf1a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_150 = 0xf1c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_151 = 0xf1e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_152 = 0xf200;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_153 = 0xf220;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_154 = 0xf240;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_155 = 0xf260;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_156 = 0xf280;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_157 = 0xf2a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_158 = 0xf2c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_159 = 0xf2e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_160 = 0xf300;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_161 = 0xf320;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_162 = 0xf340;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_163 = 0xf360;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_164 = 0xf380;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_165 = 0xf3a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_166 = 0xf3c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_167 = 0xf3e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_168 = 0xf400;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_169 = 0xf420;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_170 = 0xf440;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_171 = 0xf460;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_172 = 0xf480;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_173 = 0xf4a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_174 = 0xf4c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_175 = 0xf4e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_176 = 0xf500;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_177 = 0xf520;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_178 = 0xf540;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_179 = 0xf560;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_180 = 0xf580;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_181 = 0xf5a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_182 = 0xf5c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_183 = 0xf5e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_184 = 0xf600;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_185 = 0xf620;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_186 = 0xf640;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_187 = 0xf660;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_188 = 0xf680;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_189 = 0xf6a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_190 = 0xf6c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_191 = 0xf6e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_192 = 0xf700;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_193 = 0xf720;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_194 = 0xf740;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_195 = 0xf760;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_196 = 0xf780;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_197 = 0xf7a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_198 = 0xf7c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_199 = 0xf7e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_200 = 0xf800;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_201 = 0xf820;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_202 = 0xf840;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_203 = 0xf860;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_204 = 0xf880;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_205 = 0xf8a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_206 = 0xf8c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_207 = 0xf8e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_208 = 0xf900;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_209 = 0xf920;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_210 = 0xf940;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_211 = 0xf960;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_212 = 0xf980;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_213 = 0xf9a0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_214 = 0xf9c0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_215 = 0xf9e0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_216 = 0xfa00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_217 = 0xfa20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_218 = 0xfa40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_219 = 0xfa60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_220 = 0xfa80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_221 = 0xfaa0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_222 = 0xfac0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_223 = 0xfae0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_224 = 0xfb00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_225 = 0xfb20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_226 = 0xfb40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_227 = 0xfb60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_228 = 0xfb80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_229 = 0xfba0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_230 = 0xfbc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_231 = 0xfbe0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_232 = 0xfc00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_233 = 0xfc20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_234 = 0xfc40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_235 = 0xfc60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_236 = 0xfc80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_237 = 0xfca0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_238 = 0xfcc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_239 = 0xfce0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_240 = 0xfd00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_241 = 0xfd20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_242 = 0xfd40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_243 = 0xfd60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_244 = 0xfd80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_245 = 0xfda0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_246 = 0xfdc0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_247 = 0xfde0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_248 = 0xfe00;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_249 = 0xfe20;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_250 = 0xfe40;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_251 = 0xfe60;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_252 = 0xfe80;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_253 = 0xfea0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_254 = 0xfec0;
+    uint256 internal constant CONSISTENCY_PRODUCTS_BASE_255 = 0xfee0;
+
+    uint256 internal constant LATER_SCRATCH_SPACE = 0xff00;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                 Temporary space - COMPLETE                 */
@@ -1142,14 +1916,9 @@ contract BlakeOptZKHonkVerifier is IVerifier {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*            ZK: Consistency check scratch space             */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-    // challengePolyLagrange[256]: 0x6000 - 0x7FFF
-    uint256 internal constant CHALLENGE_POLY_LAGRANGE_BASE = 0x6000;
-    // denominators[256]: 0x8000 - 0x9FFF
-    uint256 internal constant CONSISTENCY_DENOMINATORS_BASE = 0x8000;
-    // batch inversion products[256]: 0xA000 - 0xBFFF
-    uint256 internal constant CONSISTENCY_PRODUCTS_BASE = 0xA000;
     // LIBRA_UNIVARIATES_LENGTH = BATCHED_RELATION_PARTIAL_LENGTH = 9
     uint256 internal constant LIBRA_UNIVARIATES_LENGTH = 9;
+    uint256 internal constant LIBRA_UNIVARIATES_LENGTH_MINUS_ONE = 8;
     // 1/SUBGROUP_SIZE mod p (precomputed constant)
     uint256 internal constant INV_SUBGROUP_SIZE = 0x3033ea246e506e898e97f570caffd704cb0bb460313fb720b29e139e5c100001;
 
@@ -1294,7 +2063,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
         bytes32[] calldata /*public_inputs*/
     )
         public
-        view
+        // view
         override
         returns (bool)
     {
@@ -1959,7 +2728,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 1
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_1, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 1), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -1971,7 +2740,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 2
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_2, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 2), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -1983,7 +2752,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 3
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_3, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 3), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -1995,7 +2764,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 4
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_4, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 4), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -2007,7 +2776,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 5
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_5, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 5), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -2019,7 +2788,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 6
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_6, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 6), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -2031,7 +2800,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 7
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_7, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 7), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -2043,7 +2812,7 @@ contract BlakeOptZKHonkVerifier is IVerifier {
 
                                 // barycentric_index = 8 (ZK)
                                 bary_lagrange_denominator := mload(bary_lagrange_denominator_off)
-                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, P_SUB_8, p), p)
+                                pre_inv := mulmod(bary_lagrange_denominator, addmod(round_challenge, sub(p, 8), p), p)
                                 mstore(bary_centric_inverses_off, pre_inv)
                                 temp := add(temp, 0x20)
                                 mstore(temp, accumulator)
@@ -4500,27 +5269,31 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 // Step 2: Build challengePolyLagrange[0..255]
                 // Memory layout: CHALLENGE_POLY_LAGRANGE_BASE + idx * 0x20
                 // Zero-initialize all 256 entries (only 1 + 9*LOG_N = 136 will be non-zero)
-                calldatacopy(CHALLENGE_POLY_LAGRANGE_BASE, calldatasize(), 0x2000)
+                // TODO(md): we do not need to do this is using linear memory arrangements
+                // calldatacopy(CHALLENGE_POLY_LAGRANGE_BASE, calldatasize(), 0x2000)
 
-                mstore(CHALLENGE_POLY_LAGRANGE_BASE, 1) // [0] = 1
+                mstore(CHALLENGE_POLY_LAGRANGE_BASE_0, 1) // [0] = 1
 
                 {
                     let u_loc := SUM_U_CHALLENGE_0
-                    for { let round := 0 } lt(round, LOG_N) { round := add(round, 1) } {
-                        let curr_idx := add(1, mul(LIBRA_UNIVARIATES_LENGTH, round))
+                    let challenge_base := CHALLENGE_POLY_LAGRANGE_BASE_1
+                    // Upper bound of this loop is LIBRA_UNIVARIATES_LENGTH * LOG_N - this is inserted in code templating depending on LOG_N
+                    for { } lt(challenge_base, CHALLENGE_POLY_LAGRANGE_BASE_135) { } {
                         let u_round := mload(u_loc)
 
                         // [currIdx] = 1
-                        mstore(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(curr_idx, 0x20)), 1)
+                        mstore(challenge_base, 1)
+                        challenge_base := add(challenge_base, 0x20)
+
+                        // Calc memory offset inner loop should break at
+                        let loop_target := add(challenge_base, mul(0x20, LIBRA_UNIVARIATES_LENGTH_MINUS_ONE))
 
                         // [currIdx+1..currIdx+8] = u^1, u^2, ..., u^8
                         let prev_val := 1
-                        for { let j := 1 } lt(j, LIBRA_UNIVARIATES_LENGTH) { j := add(j, 1) } {
+                        for { } lt(challenge_base, loop_target) { } {
                             prev_val := mulmod(prev_val, u_round, p)
-                            mstore(
-                                add(CHALLENGE_POLY_LAGRANGE_BASE, mul(add(curr_idx, j), 0x20)),
-                                prev_val
-                            )
+                            mstore(challenge_base, prev_val)
+                            challenge_base := add(challenge_base, 0x20)
                         }
 
                         u_loc := add(u_loc, 0x20)
@@ -4531,30 +5304,38 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                 // where rootPower_i = SUBGROUP_GENERATOR_INVERSE^i
                 {
                     let root_power := 1
-                    for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                    let consistency_base := CONSISTENCY_DENOMINATORS_BASE_0
+                    for { } lt(consistency_base, CONSISTENCY_PRODUCTS_BASE_0) { } {
                         let denom := addmod(mulmod(root_power, gemini_r, p), sub(p, 1), p)
-                        mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), denom)
+                        mstore(consistency_base, denom)
                         root_power := mulmod(root_power, SUBGROUP_GENERATOR_INVERSE, p)
+                        consistency_base := add(consistency_base, 0x20)
                     }
                 }
 
                 // Step 4: Batch invert all 256 denominators (Montgomery's trick)
                 {
                     // Forward pass: accumulate products
-                    mstore(CONSISTENCY_PRODUCTS_BASE, mload(CONSISTENCY_DENOMINATORS_BASE))
-                    for { let idx := 1 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                    let product_pointer := CONSISTENCY_PRODUCTS_BASE_0
+                    let next_product_pointer := CONSISTENCY_PRODUCTS_BASE_1
+                    let denom_pointer := CONSISTENCY_DENOMINATORS_BASE_1
+                    mstore(CONSISTENCY_PRODUCTS_BASE_0, mload(CONSISTENCY_DENOMINATORS_BASE_0))
+                    for { } lt(next_product_pointer, LATER_SCRATCH_SPACE) { } {
                         mstore(
-                            add(CONSISTENCY_PRODUCTS_BASE, mul(idx, 0x20)),
+                            next_product_pointer,
                             mulmod(
-                                mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
-                                mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                                mload(product_pointer),
+                                mload(denom_pointer),
                                 p
                             )
                         )
+                        product_pointer := next_product_pointer
+                        next_product_pointer := add(next_product_pointer, 0x20)
+                        denom_pointer := add(denom_pointer, 0x20)
                     }
 
                     // Invert the final product
-                    let final_prod := mload(add(CONSISTENCY_PRODUCTS_BASE, mul(255, 0x20)))
+                    let final_prod := mload(CONSISTENCY_PRODUCTS_BASE_255)
                     mstore(0x00, 0x20)
                     mstore(0x20, 0x20)
                     mstore(0x40, 0x20)
@@ -4565,47 +5346,57 @@ contract BlakeOptZKHonkVerifier is IVerifier {
                         mstore(0x00, CONSISTENCY_CHECK_FAILED_SELECTOR)
                         revert(0x00, 0x04)
                     }
-                    let running_inv := mload(0x00)
+                    let accumulator := mload(0x00)
 
                     // Backward pass: compute individual inverses
-                    for { let idx := 255 } gt(idx, 0) { idx := sub(idx, 1) } {
-                        let this_inv := mulmod(
-                            running_inv,
-                            mload(add(CONSISTENCY_PRODUCTS_BASE, mul(sub(idx, 1), 0x20))),
+                    let products_pointer := CONSISTENCY_PRODUCTS_BASE_254
+                    let denoms_pointer := CONSISTENCY_DENOMINATORS_BASE_255
+                    for { } gt(denoms_pointer, CONSISTENCY_DENOMINATORS_BASE_0) { } {
+                        let val := mulmod(
+                            accumulator,
+                            mload(products_pointer),
                             p
                         )
-                        running_inv := mulmod(
-                            running_inv,
-                            mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                        accumulator := mulmod(
+                            accumulator,
+                            mload(denoms_pointer),
                             p
                         )
-                        mstore(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20)), this_inv)
+                        mstore(denoms_pointer, val)
+
+                        products_pointer := sub(products_pointer, 0x20)
+                        denoms_pointer := sub(denoms_pointer, 0x20)
                     }
                     // idx=0: running_inv is the inverse of denom[0]
-                    mstore(CONSISTENCY_DENOMINATORS_BASE, running_inv)
+                    mstore(CONSISTENCY_DENOMINATORS_BASE_0, accumulator)
                 }
 
                 // Step 5: Compute challengePolyEval = sum(lagrange[i] * invDenom[i]) * numerator
                 let challenge_poly_eval := 0
-                for { let idx := 0 } lt(idx, SUBGROUP_SIZE) { idx := add(idx, 1) } {
+                // TODO(md): and again
+                let lagrange_pointer := CHALLENGE_POLY_LAGRANGE_BASE_0
+                let denom_pointer := CONSISTENCY_DENOMINATORS_BASE_0
+                for { } lt(lagrange_pointer, CONSISTENCY_DENOMINATORS_BASE_0) { } {
                     challenge_poly_eval := addmod(
                         challenge_poly_eval,
                         mulmod(
-                            mload(add(CHALLENGE_POLY_LAGRANGE_BASE, mul(idx, 0x20))),
-                            mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(idx, 0x20))),
+                            mload(lagrange_pointer),
+                            mload(denom_pointer),
                             p
                         ),
                         p
                     )
+                    lagrange_pointer := add(lagrange_pointer, 0x20)
+                    denom_pointer := add(denom_pointer, 0x20)
                 }
 
                 // numerator = vanishingPolyEval / SUBGROUP_SIZE
                 let numerator := mulmod(vanishing_poly_eval, INV_SUBGROUP_SIZE, p)
                 challenge_poly_eval := mulmod(challenge_poly_eval, numerator, p)
 
-                let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE), numerator, p)
+                let lagrange_first := mulmod(mload(CONSISTENCY_DENOMINATORS_BASE_0), numerator, p)
                 let lagrange_last := mulmod(
-                    mload(add(CONSISTENCY_DENOMINATORS_BASE, mul(255, 0x20))),
+                    mload(CONSISTENCY_DENOMINATORS_BASE_255),
                     numerator,
                     p
                 )
