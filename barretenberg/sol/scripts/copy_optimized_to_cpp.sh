@@ -5,19 +5,21 @@
 # while preserving template placeholders
 #
 # Usage:
-#   ./copy_optimized_to_cpp.sh [-f]        # Non-ZK optimized verifier
-#   ./copy_optimized_to_cpp.sh [-f] --zk   # ZK optimized verifier
+#   ./copy_optimized_to_cpp.sh [-f]          # Both non-ZK and ZK (default)
+#   ./copy_optimized_to_cpp.sh [-f] --zk     # ZK optimized verifier only
+#   ./copy_optimized_to_cpp.sh [-f] --non-zk # Non-ZK optimized verifier only
 
 set -e  # Exit on error
 
 # Parse command line arguments
 SKIP_BACKUP=false
-ZK_MODE=false
+MODE="both"
 
 # Handle both getopts flags and long options
 for arg in "$@"; do
     case $arg in
-        --zk) ZK_MODE=true ;;
+        --zk) MODE="zk" ;;
+        --non-zk) MODE="non-zk" ;;
         -f)   SKIP_BACKUP=true ;;
     esac
 done
@@ -27,21 +29,25 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 # Define paths relative to the barretenberg directory
 BARRETENBERG_DIR="$REPO_ROOT/barretenberg"
 
-if [ "$ZK_MODE" = true ]; then
-    SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeOptZK.sol"
-    CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_zk_optimized_contract.hpp"
-    CONTRACT_NAME_FROM="BlakeOptZKHonkVerifier"
-    CONTRACT_NAME_TO="HonkVerifier"
-    CPP_LITERAL_NAME="HONK_ZK_CONTRACT_OPT_SOURCE"
-    echo "Mode: ZK optimized verifier"
-else
-    SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeHonkOpt.sol"
-    CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_optimized_contract.hpp"
-    CONTRACT_NAME_FROM="BlakeOptHonkVerifier"
-    CONTRACT_NAME_TO="HonkVerifier"
-    CPP_LITERAL_NAME="HONK_CONTRACT_OPT_SOURCE"
-    echo "Mode: Non-ZK optimized verifier"
-fi
+copy_one() {
+    local ZK_MODE="$1"
+    local SOL_SRC_FILE CPP_FILE CONTRACT_NAME_FROM CONTRACT_NAME_TO CPP_LITERAL_NAME
+
+    if [ "$ZK_MODE" = true ]; then
+        SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeOptZK.sol"
+        CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_zk_optimized_contract.hpp"
+        CONTRACT_NAME_FROM="BlakeOptZKHonkVerifier"
+        CONTRACT_NAME_TO="HonkVerifier"
+        CPP_LITERAL_NAME="HONK_ZK_CONTRACT_OPT_SOURCE"
+        echo "Mode: ZK optimized verifier"
+    else
+        SOL_SRC_FILE="$BARRETENBERG_DIR/sol/src/honk/instance/BlakeHonkOpt.sol"
+        CPP_FILE="$BARRETENBERG_DIR/cpp/src/barretenberg/dsl/acir_proofs/honk_optimized_contract.hpp"
+        CONTRACT_NAME_FROM="BlakeOptHonkVerifier"
+        CONTRACT_NAME_TO="HonkVerifier"
+        CPP_LITERAL_NAME="HONK_CONTRACT_OPT_SOURCE"
+        echo "Mode: Non-ZK optimized verifier"
+    fi
 
 # Check if source file exists
 if [ ! -f "$SOL_SRC_FILE" ]; then
@@ -343,3 +349,18 @@ if [ "$ZK_MODE" = true ]; then
 else
     echo "Optimized verifier copied successfully!"
 fi
+}
+
+# Dispatch based on mode
+case "$MODE" in
+    zk)
+        copy_one true
+        ;;
+    non-zk)
+        copy_one false
+        ;;
+    *)
+        copy_one false
+        copy_one true
+        ;;
+esac

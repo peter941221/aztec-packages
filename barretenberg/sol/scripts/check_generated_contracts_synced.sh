@@ -23,7 +23,6 @@ done
 # Regenerate all three files
 "$SCRIPT_DIR/copy_to_cpp.sh" -f
 "$SCRIPT_DIR/copy_optimized_to_cpp.sh" -f
-"$SCRIPT_DIR/copy_optimized_to_cpp.sh" -f --zk
 
 # Compare and collect failures
 FAILED=0
@@ -45,7 +44,7 @@ done
 
 if [ "$FAILED" -eq 1 ]; then
     echo "Generated contract templates are out of sync with Solidity sources."
-    echo "Run './barretenberg/sol/scripts/copy_to_cpp.sh --all' and './barretenberg/sol/scripts/copy_optimized_to_cpp.sh -f' to regenerate."
+    echo "Run './barretenberg/sol/scripts/copy_to_cpp.sh --all' and './barretenberg/sol/scripts/copy_optimized_to_cpp.sh -f' to regenerate (both scripts now handle ZK and non-ZK by default)."
     exit 1
 fi
 

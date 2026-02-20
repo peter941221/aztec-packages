@@ -3,9 +3,9 @@
 # Supports both non-ZK (honk-optimized.sol.template) and ZK (zk-honk-optimized.sol.template).
 #
 # Usage:
-#   ./sync_blake_opt_vk.sh        # Sync non-ZK optimized verifier (default)
-#   ./sync_blake_opt_vk.sh --zk   # Sync ZK optimized verifier
-#   ./sync_blake_opt_vk.sh --all  # Sync both
+#   ./sync_blake_opt_vk.sh          # Sync both (default)
+#   ./sync_blake_opt_vk.sh --zk     # Sync ZK optimized verifier only
+#   ./sync_blake_opt_vk.sh --non-zk # Sync non-ZK optimized verifier only
 #
 # This script is IDEMPOTENT - safe to run multiple times, will only update if values differ
 
@@ -177,14 +177,14 @@ case "$MODE" in
         sync_template "$SCRIPT_DIR/../src/honk/optimised/zk-honk-optimized.sol.template" \
                       "$SCRIPT_DIR/../src/honk/instance/BlakeOptZK.sol" "BlakeOptZK.sol"
         ;;
-    --all)
+    --non-zk)
         sync_template "$SCRIPT_DIR/../src/honk/optimised/honk-optimized.sol.template" \
                       "$SCRIPT_DIR/../src/honk/instance/BlakeHonkOpt.sol" "BlakeHonkOpt.sol"
-        sync_template "$SCRIPT_DIR/../src/honk/optimised/zk-honk-optimized.sol.template" \
-                      "$SCRIPT_DIR/../src/honk/instance/BlakeOptZK.sol" "BlakeOptZK.sol"
         ;;
     *)
         sync_template "$SCRIPT_DIR/../src/honk/optimised/honk-optimized.sol.template" \
                       "$SCRIPT_DIR/../src/honk/instance/BlakeHonkOpt.sol" "BlakeHonkOpt.sol"
+        sync_template "$SCRIPT_DIR/../src/honk/optimised/zk-honk-optimized.sol.template" \
+                      "$SCRIPT_DIR/../src/honk/instance/BlakeOptZK.sol" "BlakeOptZK.sol"
         ;;
 esac
