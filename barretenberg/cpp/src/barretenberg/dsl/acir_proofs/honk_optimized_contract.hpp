@@ -988,6 +988,10 @@ contract HonkVerifier is IVerifier {
                             }
 
                             accumulator := mload(0x00)
+                            if iszero(accumulator) {
+                                mstore(0x00, MODEXP_FAILED_SELECTOR)
+                                revert(0x00, 0x04)
+                            }
                         }
 
                         // --- Shplemini backward pass ---
@@ -2194,8 +2198,11 @@ contract HonkVerifier is IVerifier {
             {
                 let gemini_r_inv := mload(GEMINI_R_INV_LOC)
 
-                // INVERTED_GEMINI_DENOMINATOR_0 = POS_INVERTED_DENOM_0 (same value)
-                mstore(INVERTED_GEMINI_DENOMINATOR_0_LOC, mload(POS_INVERTED_DENOM_0_LOC))
+                // staging[1..3*LOG_N] maps contiguously to:
+                //   INVERTED_CHALLENGE_POW_MINUS_U_0..14
+                //   POS_INVERTED_DENOM_0..14
+                //   NEG_INVERTED_DENOM_0..14
+                // Total: 3*LOG_N
 
                 // Compute unshifted_scalar and shifted_scalar using the copied inverses
                 let pos_inverted_denominator := mload(POS_INVERTED_DENOM_0_LOC)
