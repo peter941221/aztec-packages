@@ -2723,9 +2723,6 @@ contract HonkVerifier is IVerifier {
                 // Already batch-inverted in the shplemini batch inversion above
                 let libra_denom_1 := mload(LIBRA_SUBGROUP_DENOM_LOC)
 
-                // Interleaving artifact: skip 2 powers of shplonkNu
-                batching_challenge := mulmod(batching_challenge, shplonk_nu_sqr, p)
-
                 // i=0: denom[0], libraPolyEvals[0]
                 let scaling_factor := mulmod(libra_denom_0, batching_challenge, p)
                 let libra_scalar_0 := sub(p, scaling_factor)
