@@ -90,9 +90,6 @@ else
     sed -i -E 's/for \{\} gt\(bary_centric_inverses_off, SUM_U_CHALLENGE_14\) \{/for {} gt(bary_centric_inverses_off, SUM_U_CHALLENGE_{{ LOG_N_MINUS_ONE }}) \{/' "$TEMP_SOL"
 fi
 
-# Replace the for-loop comparison to use a template placeholder for CIRCUIT_SIZE
-sed -i -E 's/for \{\} gt\(bary_centric_inverses_off, SUM_U_CHALLENGE_14\) \{/for {} gt(bary_centric_inverses_off, SUM_U_CHALLENGE_{{ LOG_N_MINUS_ONE }}) \{/' "$TEMP_SOL"
-
 # Replace the contract name
 sed -i "s/contract ${CONTRACT_NAME_FROM}/contract ${CONTRACT_NAME_TO}/" "$TEMP_SOL"
 

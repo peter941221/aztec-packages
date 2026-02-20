@@ -370,7 +370,7 @@ def print_subrelation_intermediates(pointer: int):
 
 def print_batch_scalars(pointer: int):
     BATCH_SIZE = 69
-    for i in range(0, BATCH_SIZE):
+    for i in range(1, BATCH_SIZE):
         print_fr(pointer, "BATCH_SCALAR_" + str(i) + "_LOC")
         pointer += FIELD_ELEMENT_BYTES
 
@@ -388,17 +388,11 @@ def print_inverted_gemini_denominators(pointer: int):
         pointer += FIELD_ELEMENT_BYTES
     return pointer
 
-# TODO: double check this value
 def print_batched_evaluation_accumulator_inversions(pointer: int):
     BATCH_SIZE = 15
     for i in range(0, BATCH_SIZE):
         print_fr(pointer, "BATCH_EVALUATION_ACCUMULATOR_INVERSION_" + str(i) + "_LOC")
         pointer += FIELD_ELEMENT_BYTES
-    return pointer
-
-def print_batched_evaluation_location(pointer: int):
-    print_fr(pointer, "BATCHED_EVALUATION_LOC")
-    pointer += FIELD_ELEMENT_BYTES
     return pointer
 
 def print_constant_term_accumulator_location(pointer: int):
@@ -421,7 +415,6 @@ def print_inversions(pointer: int):
     pointer = print_batched_evaluation_accumulator_inversions(pointer)
 
     print("")
-    pointer = print_batched_evaluation_location(pointer)
     pointer = print_constant_term_accumulator_location(pointer)
 
     print("")
