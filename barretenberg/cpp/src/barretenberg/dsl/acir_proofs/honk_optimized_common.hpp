@@ -520,7 +520,7 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
     // BATCH SCALARS
     print_header_centered("SHPLEMINI - RUNTIME MEMORY - BATCH SCALARS");
     const int BATCH_SIZE = 69;
-    for (int i = 0; i < BATCH_SIZE; ++i) {
+    for (int i = 1; i < BATCH_SIZE; ++i) {
         print_fr(pointer, "BATCH_SCALAR_" + std::to_string(i) + "_LOC");
         pointer += 32;
     }
@@ -538,12 +538,6 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
         pointer += 32;
     }
 
-    // Inverted gemini denominators
-    for (int i = 0; i < log_n + 1; ++i) {
-        print_fr(pointer, "INVERTED_GEMINI_DENOMINATOR_" + std::to_string(i) + "_LOC");
-        pointer += 32;
-    }
-
     // Batched evaluation accumulator inversions
     for (int i = 0; i < log_n; ++i) {
         print_fr(pointer, "BATCH_EVALUATION_ACCUMULATOR_INVERSION_" + std::to_string(i) + "_LOC");
@@ -551,8 +545,6 @@ inline std::string generate_memory_offsets(int log_n, const MemoryLayoutConfig& 
     }
 
     out << "\n";
-    print_fr(pointer, "BATCHED_EVALUATION_LOC");
-    pointer += 32;
     print_fr(pointer, "CONSTANT_TERM_ACCUMULATOR_LOC");
     pointer += 32;
 

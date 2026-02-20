@@ -382,12 +382,6 @@ def print_POWERS_OF_EVALUATION_COMPUTATION(pointer: int):
         pointer += FIELD_ELEMENT_BYTES
     return pointer
 
-def print_inverted_gemini_denominators(pointer: int):
-    for i in range(0, PROOF_SIZE_LOG_N + 1):
-        print_fr(pointer, "INVERTED_GEMINI_DENOMINATOR_" + str(i) + "_LOC")
-        pointer += FIELD_ELEMENT_BYTES
-    return pointer
-
 def print_batched_evaluation_accumulator_inversions(pointer: int):
     BATCH_SIZE = 15
     for i in range(0, BATCH_SIZE):
@@ -411,7 +405,6 @@ def print_libra_subgroup_denom(pointer: int):
     return pointer
 
 def print_inversions(pointer: int):
-    pointer = print_inverted_gemini_denominators(pointer)
     pointer = print_batched_evaluation_accumulator_inversions(pointer)
 
     print("")

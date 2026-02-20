@@ -44,14 +44,6 @@ sync_template() {
     local VK_HASH=$(grep "uint256 constant VK_HASH" "$VK_FILE" | sed -E 's/.*= (0x[0-9a-fA-F]+);/\1/')
     local CURRENT_VK_HASH=$(grep "uint256 constant VK_HASH" "$OPT_FILE" | sed -E 's/.*= (0x[0-9a-fA-F]+);/\1/')
 
-    if [ "$VK_HASH" = "$CURRENT_VK_HASH" ]; then
-        echo "✓ $LABEL already in sync with VK (VK_HASH: $VK_HASH)"
-        return 0
-    fi
-
-    echo "Syncing VK values to $LABEL..."
-    echo "  VK_HASH: $CURRENT_VK_HASH → $VK_HASH"
-
     # Extract circuit parameters
     local CIRCUIT_SIZE=$(grep "uint256 constant N = " "$VK_FILE" | sed -E 's/.*= ([0-9]+);/\1/')
     local LOG_N=$(grep "uint256 constant LOG_N" "$VK_FILE" | sed -E 's/.*= ([0-9]+);/\1/')

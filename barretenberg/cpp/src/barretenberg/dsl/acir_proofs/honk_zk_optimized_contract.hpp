@@ -1053,8 +1053,11 @@ contract HonkVerifier is IVerifier {
                                 mstore(0x00, MODEXP_FAILED_SELECTOR)
                                 revert(0x00, 0x04)
                             }
-
                             accumulator := mload(0x00)
+                            if iszero(accumulator) {
+                                mstore(0x00, MODEXP_FAILED_SELECTOR)
+                                revert(0x00, 0x04)
+                            }
                         }
 
                         // --- Shplemini backward pass ---
@@ -2292,9 +2295,6 @@ contract HonkVerifier is IVerifier {
             {
                 let gemini_r_inv := mload(GEMINI_R_INV_LOC)
 
-                // INVERTED_GEMINI_DENOMINATOR_0 = POS_INVERTED_DENOM_0 (same value)
-                mstore(INVERTED_GEMINI_DENOMINATOR_0_LOC, mload(POS_INVERTED_DENOM_0_LOC))
-
                 // Compute unshifted_scalar and shifted_scalar using the copied inverses
                 let pos_inverted_denominator := mload(POS_INVERTED_DENOM_0_LOC)
                 let neg_inverted_denominator := mload(NEG_INVERTED_DENOM_0_LOC)
@@ -2330,7 +2330,6 @@ contract HonkVerifier is IVerifier {
             let neg_unshifted_scalar := sub(p, unshifted_scalar)
             let neg_shifted_scalar := sub(p, shifted_scalar)
 
-            mstore(BATCH_SCALAR_0_LOC, 1)
             let rho := mload(RHO_CHALLENGE)
 
             // Unrolled for the loop below - where NUMBER_UNSHIFTED = 37 (ZK: includes gemini_masking_poly)
@@ -2612,8 +2611,6 @@ contract HonkVerifier is IVerifier {
             )
             batching_challenge := mulmod(batching_challenge, rho, p)
 
-            mstore(BATCHED_EVALUATION_LOC, batched_evaluation)
-
             // Compute fold pos evaluations
             {
                 mstore(CHALL_POW_LOC, POWERS_OF_EVALUATION_CHALLENGE_{{ LOG_N_MINUS_ONE }}_LOC)
@@ -2859,6 +2856,10 @@ contract HonkVerifier is IVerifier {
                         revert(0x00, 0x04)
                     }
                     let accumulator := mload(0x00)
+                    if iszero(accumulator) {
+                        mstore(0x00, MODEXP_FAILED_SELECTOR)
+                        revert(0x00, 0x04)
+                    }
 
                     // Backward pass: compute individual inverses
                     let products_pointer := CONSISTENCY_PRODUCTS_BASE_254
