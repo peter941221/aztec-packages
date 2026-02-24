@@ -78,8 +78,6 @@ function build {
   if [ "$CI_FULL" -eq 1 ]; then
     build_cross amd64-macos
     build_cross arm64-macos
-  fi
-  if semver check "${REF_NAME:-}"; then
     build_cross arm64-linux
   fi
 }
