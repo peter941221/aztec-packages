@@ -26,6 +26,9 @@ elif semver check "${REF_NAME:-}" && [[ "$(arch)" == "amd64" ]]; then
 
   llvm-strip-20 ./build/*/*
 else
-  echo "This task is expected to be run in an x86 release context."
-  exit 1
+  if [[ "$(arch)" == "amd64" ]]; then
+    echo "This task is expected to be run in an x86 release context."
+    exit 1
+  fi
+  # On arm64, cross_copy is a no-op - arm64 releases only publish release-image.
 fi
