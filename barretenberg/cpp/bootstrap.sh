@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 source $(git rev-parse --show-toplevel)/ci3/source_bootstrap
 
-if [ "${AVM:-1}" -eq "1" ]; then
-  export native_preset=${NATIVE_PRESET:-clang20}
+if [ -n "${NATIVE_PRESET:-}" ]; then
+  export native_preset=$NATIVE_PRESET
+elif [ "$(os)" == "macos" ]; then
+  export BREW_PREFIX=${BREW_PREFIX:-$(brew --prefix)}
+  export native_preset=homebrew
+elif [ "${AVM:-1}" -eq "1" ]; then
+  export native_preset=clang20
 else
-  export native_preset=${NATIVE_PRESET:-clang20-no-avm}
+  export native_preset=clang20-no-avm
 fi
 export hash=$(hash_str $(../../avm-transpiler/bootstrap.sh hash) $(cache_content_hash .rebuild_patterns))
 export native_build_dir=$(scripts/native-preset-build-dir)

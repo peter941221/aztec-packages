@@ -5,7 +5,7 @@
 set -euo pipefail
 cd $(dirname $0)
 
-preset=${NATIVE_PRESET:-clang20}
+preset=${native_preset:-${NATIVE_PRESET:-clang20}}
 
 declare -A preset_to_dir preset_to_inherits
 
@@ -31,7 +31,7 @@ function get_binary_dir {
    echo "${preset_to_dir[$name]}"
    return
   fi
-  for parent in ${preset_to_inherits[$name]}; do
+  for parent in ${preset_to_inherits[$name]:-}; do
     result="$(get_binary_dir "$parent")"
     if [[ -n "$result" ]]; then
       preset_to_dir["$name"]="$result"
