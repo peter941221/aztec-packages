@@ -110,10 +110,7 @@ function release {
   local version=${REF_NAME#v}
 
   # Upload version-specific files to version directory.
-  do_or_dryrun aws s3 cp bin/0.0.1/install "s3://install.aztec.network/$version/install"
-  do_or_dryrun aws s3 cp bin/0.0.1/versions "s3://install.aztec.network/$version/versions"
-  do_or_dryrun aws s3 cp bin/0.0.1/aztec-install "s3://install.aztec.network/$version/aztec-install"
-  do_or_dryrun aws s3 cp bin/0.0.1/aztec-up "s3://install.aztec.network/$version/aztec-up"
+  do_or_dryrun aws s3 cp bin/0.0.1/ "s3://install.aztec.network/$version/" --recursive
 
   # Update alias to point to new version.
   # This has real impact outside of the version fence. i.e. if it's nightly dist tag, it affects nightly installs.
