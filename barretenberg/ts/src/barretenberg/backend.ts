@@ -318,7 +318,7 @@ export class AztecClientBackend {
 
   async prove(
     witnessBuf: Uint8Array[],
-    vksBuf: Uint8Array[] = [],
+    vksBuf?: Uint8Array[],
   ): Promise<[Uint8Array[], Uint8Array, Uint8Array]>;
   async prove(
     witnessBuf: Uint8Array[],
@@ -327,9 +327,10 @@ export class AztecClientBackend {
   ): Promise<AztecClientProveResult>;
   async prove(
     witnessBuf: Uint8Array[],
-    vksBuf: Uint8Array[] = [],
+    vksBuf?: Uint8Array[],
     options?: { compress: boolean },
   ): Promise<[Uint8Array[], Uint8Array, Uint8Array] | AztecClientProveResult> {
+    vksBuf = vksBuf ?? [];
     if (vksBuf.length !== 0 && this.acirBuf.length !== witnessBuf.length) {
       throw new AztecClientBackendError('Witness and bytecodes must have the same stack depth!');
     }
