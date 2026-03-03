@@ -167,6 +167,7 @@ describe('TxPool: Benchmarks', () => {
           checkpointed: tipId,
           proven: tipId,
           finalized: tipId,
+          pendingCheckpoint: undefined,
         });
       },
     });

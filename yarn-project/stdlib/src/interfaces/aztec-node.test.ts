@@ -533,6 +533,7 @@ class MockAztecNode implements AztecNode {
     return Promise.resolve({
       proposed: { number: BlockNumber(1), hash: `0x01` },
       checkpointed: tipId,
+      pendingCheckpoint: undefined,
       proven: tipId,
       finalized: tipId,
     });
