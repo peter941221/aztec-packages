@@ -69,12 +69,10 @@ describe('ChonkProof', () => {
       const forBlock100 = proof.forBlock(100, ACTIVATION_BLOCK);
 
       const buf = forBlock100.toBuffer();
-      // First uint32 should be 0 (compressed format indicator)
-      expect(buf.readUInt32BE(0)).toBe(0);
-      // Second uint32 should be the compressed bytes length
-      expect(buf.readUInt32BE(4)).toBe(fakeCompressedBytes.length);
+      // First uint32 should be the compressed byte count (not CHONK_PROOF_LENGTH)
+      expect(buf.readUInt32BE(0)).toBe(fakeCompressedBytes.length);
       // Then the compressed bytes themselves
-      expect(buf.subarray(8)).toEqual(fakeCompressedBytes);
+      expect(buf.subarray(4)).toEqual(fakeCompressedBytes);
     });
 
     it('serializes in compressed format after activation block', () => {
@@ -82,7 +80,7 @@ describe('ChonkProof', () => {
       const forBlock200 = proof.forBlock(200, ACTIVATION_BLOCK);
 
       const buf = forBlock200.toBuffer();
-      expect(buf.readUInt32BE(0)).toBe(0);
+      expect(buf.readUInt32BE(0)).toBe(fakeCompressedBytes.length);
       expect(forBlock200.compressedProof).toEqual(fakeCompressedBytes);
     });
 
@@ -128,18 +126,14 @@ describe('ChonkProof', () => {
       expect(deserialized.fields).toEqual(proof.fields);
     });
 
-    it('detects compressed format by 0 indicator in first uint32', () => {
-      // Construct a buffer with compressed format header
+    it('detects compressed format by size (first uint32 != CHONK_PROOF_LENGTH)', () => {
+      // Construct a buffer with compressed format: [byte_count: uint32] [compressed_bytes]
       const compressedPayload = Buffer.from([0x01, 0x02, 0x03]);
-      const buf = Buffer.concat([
-        numToUInt32BE(0), // compressed format indicator
-        numToUInt32BE(compressedPayload.length),
-        compressedPayload,
-      ]);
+      const buf = Buffer.concat([numToUInt32BE(compressedPayload.length), compressedPayload]);
 
-      // fromBuffer should detect this as compressed format and attempt decompression.
-      // Since we're using fake bytes, BarretenbergSync will throw —
-      // but the format detection itself works.
+      // fromBuffer should detect this as compressed format (first uint32 != 1632)
+      // and attempt decompression. Since we're using fake bytes, BarretenbergSync
+      // will throw — but the format detection itself works.
       expect(() => ChonkProof.fromBuffer(buf)).toThrow();
     });
   });

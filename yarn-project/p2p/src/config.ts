@@ -6,6 +6,7 @@ import {
   getConfigFromMappings,
   getDefaultConfig,
   numberConfigHelper,
+  optionalNumberConfigHelper,
   percentageConfigHelper,
   pickConfigMappings,
   secretStringConfigHelper,
@@ -182,6 +183,9 @@ export interface P2PConfig
 
   /** Whether transactions are disabled for this node. This means transactions will be rejected at the RPC and P2P layers. */
   disableTransactions: boolean;
+
+  /** L2 block at which compressed proof serialization is activated. Undefined means never. */
+  proofCompressionActivationBlock?: number;
 
   /** The probability that a transaction is discarded (0 = disabled). - For testing purposes only */
   dropTransactionsProbability: number;
@@ -467,6 +471,12 @@ export const p2pConfigMappings: ConfigMappingsType<P2PConfig> = {
     description:
       'Whether transactions are disabled for this node. This means transactions will be rejected at the RPC and P2P layers.',
     ...booleanConfigHelper(false),
+  },
+  proofCompressionActivationBlock: {
+    env: 'AZTEC_PROOF_COMPRESSION_ACTIVATION_BLOCK',
+    description:
+      'L2 block number at which compressed proof serialization is activated. Before this block, proofs use legacy format. At or after, proofs use compressed format (~1.7x smaller).',
+    ...optionalNumberConfigHelper(),
   },
   txPoolDeleteTxsAfterReorg: {
     env: 'P2P_TX_POOL_DELETE_TXS_AFTER_REORG',

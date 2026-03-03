@@ -7,15 +7,14 @@ import { bufferSchemaFor } from '@aztec/foundation/schemas';
 import { BufferReader, numToUInt32BE, serializeToBuffer } from '@aztec/foundation/serialize';
 
 /**
- * Serialization format indicator for ChonkProof:
- *   - UNCOMPRESSED (legacy): [field_count=1632: uint32] [fields...]
- *   - COMPRESSED: [0: uint32] [compressed_bytes_length: uint32] [compressed_bytes...]
+ * Serialization format detection for ChonkProof is size-based:
+ *   - UNCOMPRESSED (legacy): [field_count=1632: uint32] [fields...]  → total ≈ 52KB (>= 40KB)
+ *   - COMPRESSED:            [byte_count: uint32] [compressed_bytes] → total ≈ 35KB (< 40KB)
  *
- * A field_count of 0 signals compressed format since valid proofs always have
- * CHONK_PROOF_LENGTH (1632) fields. Both formats are supported for v4 soft fork
- * compatibility.
+ * Detection: if the first uint32 equals CHONK_PROOF_LENGTH (1632), it's legacy format
+ * (field count). Otherwise, it's compressed format (byte count). The old uncompressed
+ * format is never smaller than 40KB; compressed proofs are always smaller than 40KB.
  */
-const COMPRESSED_FORMAT_INDICATOR = 0;
 
 // CHONK: "Client Honk" - An UltraHonk variant with incremental folding and delayed non-native arithmetic.
 export class ChonkProof {
@@ -78,24 +77,25 @@ export class ChonkProof {
    * Deserialize a ChonkProof from a buffer.
    * Supports both legacy (field elements) and compressed (chonk compression) formats.
    *
-   * Format detection:
-   *   - First uint32 == CHONK_PROOF_LENGTH (1632): legacy format with field elements
-   *   - First uint32 == 0: compressed format, followed by [length: uint32] [compressed_bytes]
+   * Size-based format detection:
+   *   - First uint32 == CHONK_PROOF_LENGTH (1632): legacy format, read field elements
+   *     Total proof data ≈ 52KB (always >= 40KB)
+   *   - Otherwise: compressed format, first uint32 is byte count of compressed data
+   *     Total proof data ≈ 35KB (always < 40KB)
    */
   static fromBuffer(buffer: Buffer | BufferReader): ChonkProof {
     const reader = BufferReader.asReader(buffer);
     const firstUint32 = reader.readNumber();
 
-    if (firstUint32 === COMPRESSED_FORMAT_INDICATOR) {
-      // Compressed format: decompress using BarretenbergSync
-      const compressedLength = reader.readNumber();
-      const compressedBytes = reader.readBytes(compressedLength);
-      return ChonkProof.fromCompressedBytes(Buffer.from(compressedBytes));
+    if (firstUint32 === CHONK_PROOF_LENGTH) {
+      // Legacy format: firstUint32 is the field count (1632)
+      const proof = reader.readArray(firstUint32, Fr);
+      return new ChonkProof(proof);
     }
 
-    // Legacy format: firstUint32 is the field count
-    const proof = reader.readArray(firstUint32, Fr);
-    return new ChonkProof(proof);
+    // Compressed format: firstUint32 is the compressed byte count
+    const compressedBytes = reader.readBytes(firstUint32);
+    return ChonkProof.fromCompressedBytes(Buffer.from(compressedBytes));
   }
 
   /**
@@ -132,14 +132,10 @@ export class ChonkProof {
    */
   public toBuffer() {
     if (this.compressedProof) {
-      // Compressed format: [0: uint32] [compressed_length: uint32] [compressed_bytes]
-      return Buffer.concat([
-        numToUInt32BE(COMPRESSED_FORMAT_INDICATOR),
-        numToUInt32BE(this.compressedProof.length),
-        this.compressedProof,
-      ]);
+      // Compressed format: [compressed_byte_count: uint32] [compressed_bytes]
+      return Buffer.concat([numToUInt32BE(this.compressedProof.length), this.compressedProof]);
     }
-    // Legacy format: [field_count: uint32] [fields...]
+    // Legacy format: [field_count=1632: uint32] [fields...]
     return serializeToBuffer(this.fields.length, this.fields);
   }
 

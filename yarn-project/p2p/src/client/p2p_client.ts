@@ -483,6 +483,17 @@ export class P2PClient extends WithTracer implements P2P {
    **/
   public async sendTx(tx: Tx): Promise<void> {
     this.#assertIsReady();
+
+    // Apply proof compression gate: before the activation block, strip compressed
+    // bytes so the proof serializes in legacy format for backward compatibility.
+    const activationBlock = this.config.proofCompressionActivationBlock;
+    if (activationBlock !== undefined) {
+      const currentBlock = await this.getSyncedLatestBlockNum();
+      if (currentBlock < activationBlock) {
+        tx.chonkProof.compressedProof = undefined;
+      }
+    }
+
     const result = await this.txPool.addPendingTxs([tx], { feeComparisonOnly: true });
     if (result.accepted.length === 1) {
       await this.p2pService.propagate(tx);
