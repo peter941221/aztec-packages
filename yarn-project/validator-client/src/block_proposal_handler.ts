@@ -463,8 +463,9 @@ export class BlockProposalHandler {
     }
 
     // Make a quick check before triggering an archiver sync
+    // If we are pipelining and have a pending checkpoint number stored, we will allow the block proposal to be for a slot further
     const syncedSlot = await this.blockSource.getSyncedL2SlotNumber();
-    if (syncedSlot !== undefined && syncedSlot + 1 >= slot) {
+    if (syncedSlot !== undefined && syncedSlot + 1 + this.epochCache.pipeliningOffset() >= slot) {
       return true;
     }
 
@@ -473,8 +474,8 @@ export class BlockProposalHandler {
       return await retryUntil(
         async () => {
           await this.blockSource.syncImmediate();
-          const syncedSlot = await this.blockSource.getSyncedL2SlotNumber();
-          return syncedSlot !== undefined && syncedSlot + 1 >= slot;
+          const updatedSyncedSlot = await this.blockSource.getSyncedL2SlotNumber();
+          return updatedSyncedSlot !== undefined && updatedSyncedSlot + 1 >= slot;
         },
         'wait for block source sync',
         timeoutMs / 1000,
