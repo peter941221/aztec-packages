@@ -270,38 +270,33 @@ export class ArchiverL1Synchronizer implements Traceable {
       return;
     }
 
-    // Don't prune blocks that are covered by a pending checkpoint (awaiting L1 submission from pipelining)
+    const slotAtNextL1Block = getSlotAtNextL1Block(currentL1Timestamp, this.l1Constants);
     const firstUncheckpointedBlockNumber = BlockNumber(lastCheckpointedBlockNumber + 1);
-    if (pendingCheckpoint) {
-      const lastPendingBlock = BlockNumber(pendingCheckpoint.startBlock + pendingCheckpoint.blockCount - 1);
-      if (lastPendingBlock >= firstUncheckpointedBlockNumber) {
-        this.log.trace(`Skipping prune: pending checkpoint covers blocks up to ${lastPendingBlock}`);
-        return;
-      }
-    }
-
-    // What's the slot of the first uncheckpointed block?
     const [firstUncheckpointedBlockHeader] = await this.store.getBlockHeaders(firstUncheckpointedBlockNumber, 1);
     const firstUncheckpointedBlockSlot = firstUncheckpointedBlockHeader?.getSlot();
 
-    // What's the slot at the next L1 block? All blocks for slots strictly before this one should've been checkpointed by now.
-    const slotAtNextL1Block = getSlotAtNextL1Block(currentL1Timestamp, this.l1Constants);
+    // Only prune once the slot has ended — blocks for the current slot may still be delivered
+    if (firstUncheckpointedBlockSlot === undefined || firstUncheckpointedBlockSlot >= slotAtNextL1Block) {
+      return;
+    }
 
-    // Prune provisional blocks from slots that have ended without being checkpointed
-    if (firstUncheckpointedBlockSlot !== undefined && firstUncheckpointedBlockSlot < slotAtNextL1Block) {
+    this.log.warn(
+      `Pruning blocks after block ${lastCheckpointedBlockNumber} due to slot ${firstUncheckpointedBlockSlot} not being checkpointed`,
+      { firstUncheckpointedBlockHeader: firstUncheckpointedBlockHeader.toInspect(), slotAtNextL1Block },
+    );
+    if (pendingCheckpoint) {
       this.log.warn(
-        `Pruning blocks after block ${lastCheckpointedBlockNumber} due to slot ${firstUncheckpointedBlockSlot} not being checkpointed`,
-        { firstUncheckpointedBlockHeader: firstUncheckpointedBlockHeader.toInspect(), slotAtNextL1Block },
+        `Stale pending checkpoint ${pendingCheckpoint.checkpointNumber} for slot ${pendingCheckpoint.header.slotNumber} will be cleared`,
       );
-      const prunedBlocks = await this.updater.removeUncheckpointedBlocksAfter(lastCheckpointedBlockNumber);
+    }
+    const prunedBlocks = await this.updater.removeUncheckpointedBlocksAfter(lastCheckpointedBlockNumber);
 
-      if (prunedBlocks.length > 0) {
-        this.events.emit(L2BlockSourceEvents.L2PruneUncheckpointed, {
-          type: L2BlockSourceEvents.L2PruneUncheckpointed,
-          slotNumber: firstUncheckpointedBlockSlot,
-          blocks: prunedBlocks,
-        });
-      }
+    if (prunedBlocks.length > 0) {
+      this.events.emit(L2BlockSourceEvents.L2PruneUncheckpointed, {
+        type: L2BlockSourceEvents.L2PruneUncheckpointed,
+        slotNumber: firstUncheckpointedBlockSlot,
+        blocks: prunedBlocks,
+      });
     }
   }
 

@@ -355,11 +355,19 @@ export class BlockStore {
         await this.#slotToCheckpoint.set(checkpoint.checkpoint.header.slotNumber, checkpoint.checkpoint.number);
       }
 
-      // Clear the pending checkpoint if any of the confirmed checkpoints match or supersede it
+      // Clear the pending checkpoint if the confirmed checkpoints have caught up to it,
+      // but only if there are no uncheckpointed blocks beyond the confirmed chain.
+      // Pipelining may have built blocks for the next checkpoint on top of the pending one;
+      // clearing pendingCheckpointNumber while those blocks exist breaks the pipelining skip
+      // condition, causing the sequencer to fall through to L1 checks with a stale archive.
       const pendingCheckpointNumber = await this.getPendingCheckpointNumber();
       const lastConfirmedCheckpointNumber = checkpoints[checkpoints.length - 1].checkpoint.number;
       if (pendingCheckpointNumber <= lastConfirmedCheckpointNumber) {
-        await this.#pendingCheckpoint.delete();
+        const lastConfirmedBlock = checkpoints[checkpoints.length - 1].checkpoint.blocks.at(-1);
+        const lastBlockNumber = await this.getLatestBlockNumber();
+        if (!lastConfirmedBlock || lastBlockNumber <= lastConfirmedBlock.number) {
+          await this.#pendingCheckpoint.delete();
+        }
       }
 
       await this.#lastSynchedL1Block.set(checkpoints[checkpoints.length - 1].l1.blockNumber);
@@ -1042,6 +1050,10 @@ export class BlockStore {
       totalManaUsed: pending.totalManaUsed.toString(),
       feeAssetPriceModifier: pending.feeAssetPriceModifier.toString(),
     });
+  }
+
+  async clearPendingCheckpoint() {
+    await this.#pendingCheckpoint.delete();
   }
 
   async getProvenCheckpointNumber(): Promise<CheckpointNumber> {

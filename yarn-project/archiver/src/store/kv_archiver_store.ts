@@ -707,4 +707,10 @@ export class KVArchiverDataStore implements ContractDataSource {
   removeBlocksAfter(blockNumber: BlockNumber): Promise<L2Block[]> {
     return this.#blockStore.removeBlocksAfter(blockNumber);
   }
+
+  /** Clears the pending checkpoint and associated pipelining state. */
+  async clearPendingCheckpoint() {
+    await this.#blockStore.clearPendingCheckpoint();
+    await this.#messageStore.clearPipeliningTreeInProgress();
+  }
 }

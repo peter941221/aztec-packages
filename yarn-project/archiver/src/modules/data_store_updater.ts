@@ -223,6 +223,7 @@ export class ArchiverDataStoreUpdater {
       }
 
       const result = await this.removeBlocksAfter(blockNumber);
+      await this.store.clearPendingCheckpoint();
       await this.l2TipsCache?.refresh();
       return result;
     });

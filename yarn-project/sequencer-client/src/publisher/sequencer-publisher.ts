@@ -129,6 +129,8 @@ interface RequestWithExpiry {
   lastValidL2Slot: SlotNumber;
   gasConfig?: Pick<L1TxConfig, 'txTimeoutAt' | 'gasLimit'>;
   blobConfig?: L1BlobInputs;
+  /** Optional pre-send validation. If it rejects, the request is discarded. */
+  preCheck?: () => Promise<void>;
   checkSuccess: (
     request: L1TxRequest,
     result?: { receipt: TransactionReceipt; stats?: TransactionStats; errorMsg?: string },
@@ -567,6 +569,20 @@ export class SequencerPublisher {
     if (this.interrupted) {
       return undefined;
     }
+
+    // Re-validate enqueued requests after the sleep (state may have changed, e.g. prune or L1 reorg)
+    for (const request of this.requests) {
+      if (request.preCheck) {
+        try {
+          await request.preCheck();
+        } catch (err) {
+          this.log.warn(`Pre-send validation failed for ${request.action}, discarding enqueued requests`, err);
+          this.requests = [];
+          return undefined;
+        }
+      }
+    }
+
     return this.sendRequests();
   }
 
@@ -1236,8 +1252,23 @@ export class SequencerPublisher {
       throw err;
     }
 
+    // Build a pre-check callback that re-validates the checkpoint before L1 submission.
+    // During pipelining this catches stale proposals due to prunes or L1 reorgs that occur during the pipeline sleep.
+    let preCheck = undefined;
+    if (this.epochCache.isProposerPipeliningEnabled()) {
+      preCheck = async () => {
+        this.log.debug(`Re-validating checkpoint ${checkpoint.number} before L1 submission`);
+        await this.validateCheckpointForSubmission(
+          checkpoint,
+          attestationsAndSigners,
+          attestationsAndSignersSignature,
+          {},
+        );
+      };
+    }
+
     this.log.verbose(`Enqueuing checkpoint propose transaction`, { ...checkpoint.toCheckpointInfo(), ...opts });
-    await this.addProposeTx(checkpoint, proposeTxArgs, opts, ts);
+    await this.addProposeTx(checkpoint, proposeTxArgs, opts, ts, preCheck);
   }
 
   public enqueueInvalidateCheckpoint(
@@ -1576,6 +1607,7 @@ export class SequencerPublisher {
       forcePendingFeeHeader?: { checkpointNumber: CheckpointNumber; feeHeader: FeeHeader };
     } = {},
     timestamp: bigint,
+    preCheck?: () => Promise<void>,
   ): Promise<void> {
     const slot = checkpoint.header.slotNumber;
     const timer = new Timer();
@@ -1608,6 +1640,7 @@ export class SequencerPublisher {
       },
       lastValidL2Slot: checkpoint.header.slotNumber,
       gasConfig: { ...opts, gasLimit },
+      preCheck,
       blobConfig: {
         blobs: encodedData.blobs.map(b => b.data),
         kzg,
