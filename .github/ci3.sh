@@ -83,6 +83,7 @@ function handle_release_pr {
   github_repository=$(git remote get-url origin | sed -E 's|.*github\.com[/:]([^/]+/[^/]+)(\.git)?$|\1|')
   git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${github_repository}"
   local tag_name="v0.0.1-commit.$(git rev-parse --short HEAD)"
+  git config --unset-all http.https://github.com/.extraheader || true
   git tag "${tag_name}"
   git push origin "${tag_name}"
   echo "Created and pushed tag: ${tag_name}"

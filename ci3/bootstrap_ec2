@@ -306,7 +306,7 @@ function run {
         -e NO_CACHE=${NO_CACHE:-} \
         -e NO_FAIL_FAST=${NO_FAIL_FAST:-} \
         -e CI_USE_BUILD_INSTANCE_KEY=${CI_USE_BUILD_INSTANCE_KEY:-} \
-        -e CI_REDIS='ci-redis-tiered.lzka0i.ng.0001.use2.cache.amazonaws.com' \
+        -e CI_REDIS=${CI_REDIS:-'ci-redis-tiered.lzka0i.ng.0001.use2.cache.amazonaws.com'} \
         -e SSH_CONNECTION=' ' \
         -e LOCAL_USER_ID=\$(id -u) \
         -e LOCAL_GROUP_ID=\$(id -g) \
