@@ -123,6 +123,13 @@ export type InvalidateCheckpointRequest = {
   lastArchive: Fr;
 };
 
+/** Options for overriding L1 state during propose simulation (used when pipelining). */
+type ProposeSimulationOverrides = {
+  forcePendingCheckpointNumber?: CheckpointNumber;
+  forcePendingArchive?: { checkpointNumber: CheckpointNumber; archive: Fr };
+  forcePendingFeeHeader?: { checkpointNumber: CheckpointNumber; feeHeader: FeeHeader };
+};
+
 interface RequestWithExpiry {
   action: Action;
   request: L1TxRequest;
@@ -880,10 +887,7 @@ export class SequencerPublisher {
     checkpoint: Checkpoint,
     attestationsAndSigners: CommitteeAttestationsAndSigners,
     attestationsAndSignersSignature: Signature,
-    options: {
-      forcePendingCheckpointNumber?: CheckpointNumber;
-      forcePendingFeeHeader?: { checkpointNumber: CheckpointNumber; feeHeader: FeeHeader };
-    },
+    options: ProposeSimulationOverrides,
   ): Promise<bigint> {
     // Anchor the simulation timestamp to the checkpoint's own slot start time
     // rather than the current L1 block timestamp, which may overshoot into the next slot if the build ran late.
@@ -1209,11 +1213,7 @@ export class SequencerPublisher {
     checkpoint: Checkpoint,
     attestationsAndSigners: CommitteeAttestationsAndSigners,
     attestationsAndSignersSignature: Signature,
-    opts: {
-      txTimeoutAt?: Date;
-      forcePendingCheckpointNumber?: CheckpointNumber;
-      forcePendingFeeHeader?: { checkpointNumber: CheckpointNumber; feeHeader: FeeHeader };
-    } = {},
+    opts: ProposeSimulationOverrides & { txTimeoutAt?: Date } = {},
   ): Promise<void> {
     const checkpointHeader = checkpoint.header;
 
@@ -1397,11 +1397,7 @@ export class SequencerPublisher {
     this.l1TxUtils.restart();
   }
 
-  private async prepareProposeTx(
-    encodedData: L1ProcessArgs,
-    timestamp: bigint,
-    options: { forcePendingCheckpointNumber?: CheckpointNumber },
-  ) {
+  private async prepareProposeTx(encodedData: L1ProcessArgs, timestamp: bigint, options: ProposeSimulationOverrides) {
     const kzg = Blob.getViemKzgInstance();
     const blobInput = getPrefixedEthBlobCommitments(encodedData.blobs);
     this.log.debug('Validating blob input', { blobInput });
@@ -1498,10 +1494,7 @@ export class SequencerPublisher {
       `0x${string}`,
     ],
     timestamp: bigint,
-    options: {
-      forcePendingCheckpointNumber?: CheckpointNumber;
-      forcePendingFeeHeader?: { checkpointNumber: CheckpointNumber; feeHeader: FeeHeader };
-    },
+    options: ProposeSimulationOverrides,
   ) {
     const rollupData = encodeFunctionData({
       abi: RollupAbi,
@@ -1526,12 +1519,23 @@ export class SequencerPublisher {
         : []
     ).flatMap(override => override.stateDiff ?? []);
 
+    // override the archive for a specific checkpoint number if requested (used when pipelining)
+    const forcePendingArchiveStateDiff = (
+      options.forcePendingArchive !== undefined
+        ? this.rollupContract.makeArchiveOverride(
+            options.forcePendingArchive.checkpointNumber,
+            options.forcePendingArchive.archive,
+          )
+        : []
+    ).flatMap(override => override.stateDiff ?? []);
+
     const stateOverrides: StateOverride = [
       {
         address: this.rollupContract.address,
         // @note we override checkBlob to false since blobs are not part simulate()
         stateDiff: [
           { slot: toPaddedHex(RollupContract.checkBlobStorageSlot, true), value: toPaddedHex(0n, true) },
+          ...forcePendingArchiveStateDiff,
           ...forcePendingCheckpointNumberStateDiff,
           ...forcePendingFeeHeaderStateDiff,
         ],
@@ -1601,11 +1605,7 @@ export class SequencerPublisher {
   private async addProposeTx(
     checkpoint: Checkpoint,
     encodedData: L1ProcessArgs,
-    opts: {
-      txTimeoutAt?: Date;
-      forcePendingCheckpointNumber?: CheckpointNumber;
-      forcePendingFeeHeader?: { checkpointNumber: CheckpointNumber; feeHeader: FeeHeader };
-    } = {},
+    opts: ProposeSimulationOverrides & { txTimeoutAt?: Date } = {},
     timestamp: bigint,
     preCheck?: () => Promise<void>,
   ): Promise<void> {
