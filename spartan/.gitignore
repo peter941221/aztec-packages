@@ -31,4 +31,5 @@ environments/*
 !environments/kind-minimal.env
 !environments/kind-provers.env
 !environments/alpha-net.env
+!environments/mbps-pipeline.env
 *.tfvars

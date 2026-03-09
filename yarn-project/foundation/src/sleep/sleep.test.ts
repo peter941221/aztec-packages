@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 import { InterruptError } from '../error/index.js';
-import { InterruptibleSleep } from './index.js';
+import { InterruptibleSleep, abortableSleep } from './index.js';
 
 describe('InterruptibleSleep', () => {
   it('should sleep for 100ms', async () => {
@@ -36,5 +36,46 @@ describe('InterruptibleSleep', () => {
     // -10 ms wiggle room for rounding errors
     expect(end1! - start).toBeGreaterThanOrEqual(90);
     expect(stub).not.toHaveBeenCalled();
+  });
+
+  it('should resolve when signal is aborted (non-throwing)', async () => {
+    const sleeper = new InterruptibleSleep();
+    const controller = new AbortController();
+    const promise = sleeper.sleep(5000, controller.signal);
+    setTimeout(() => controller.abort(new Error('aborted')), 50);
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it('should throw signal.reason when signal is aborted with throwOnAbort', async () => {
+    const sleeper = new InterruptibleSleep();
+    const controller = new AbortController();
+    const promise = sleeper.sleep(5000, controller.signal, { throwOnAbort: true });
+    setTimeout(() => controller.abort(new Error('test reason')), 50);
+    await expect(promise).rejects.toThrow('test reason');
+  });
+});
+
+describe('abortableSleep', () => {
+  it('resolves after the given time', async () => {
+    const start = Date.now();
+    await abortableSleep(50);
+    expect(Date.now() - start).toBeGreaterThanOrEqual(45);
+  });
+
+  it('rejects immediately if signal is already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort(new Error('already aborted'));
+    await expect(abortableSleep(5000, controller.signal)).rejects.toThrow('already aborted');
+  });
+
+  it('rejects when signal is aborted during sleep', async () => {
+    const controller = new AbortController();
+    const promise = abortableSleep(5000, controller.signal);
+    setTimeout(() => controller.abort(new Error('interrupted')), 50);
+    await expect(promise).rejects.toThrow('interrupted');
+  });
+
+  it('resolves normally without a signal', async () => {
+    await expect(abortableSleep(10)).resolves.toBeUndefined();
   });
 });

@@ -405,6 +405,12 @@ export const SEQUENCER_BLOCK_COUNT: MetricDefinition = {
   description: 'Number of blocks built by this sequencer',
   valueType: ValueType.INT,
 };
+export const SEQUENCER_BLOCK_INTER_BLOCK_TIME: MetricDefinition = {
+  name: 'aztec.sequencer.block.inter_block_time',
+  description: 'Wall-clock time elapsed between consecutive blocks being built by this sequencer',
+  unit: 'ms',
+  valueType: ValueType.INT,
+};
 export const SEQUENCER_CURRENT_SLOT_REWARDS: MetricDefinition = {
   name: 'aztec.sequencer.current_slot_rewards',
   description: 'The rewards earned per filled slot',

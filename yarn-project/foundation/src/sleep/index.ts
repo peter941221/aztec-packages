@@ -1,4 +1,4 @@
-import { InterruptError } from '../error/index.js';
+import { AbortError, InterruptError } from '../error/index.js';
 
 /**
  * InterruptibleSleep is a utility class that allows you to create an interruptible sleep function.
@@ -28,11 +28,14 @@ export class InterruptibleSleep {
    * Sleep for a specified amount of time in milliseconds.
    * The sleep function will pause the execution of the current async function
    * for the given time period, allowing other tasks to run before resuming.
+   * If an AbortSignal is provided, the sleep can be cut short when the signal fires.
    *
    * @param ms - The number of milliseconds to sleep.
+   * @param signal - Optional AbortSignal to interrupt the sleep early.
+   * @param opts - Options controlling behaviour on abort. If `throwOnAbort` is true, the sleep throws `signal.reason`; otherwise it resolves silently.
    * @returns A Promise that resolves after the specified time has passed.
    */
-  public async sleep(ms: number): Promise<void> {
+  public async sleep(ms: number, signal?: AbortSignal, opts?: { throwOnAbort?: boolean }): Promise<void> {
     let interruptResolve: (shouldThrow: boolean) => void;
     const interruptPromise = new Promise<boolean>(resolve => {
       interruptResolve = resolve;
@@ -44,14 +47,29 @@ export class InterruptibleSleep {
       timeoutId = setTimeout(() => resolve(false), ms);
       this.timeoutIds.push(timeoutId);
     });
+
+    // Listen for AbortSignal if provided
+    let onAbort: (() => void) | undefined;
+    if (signal) {
+      if (signal.aborted) {
+        interruptResolve!(opts?.throwOnAbort ?? false);
+      } else {
+        onAbort = () => interruptResolve!(opts?.throwOnAbort ?? false);
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+    }
+
     const shouldThrow = await Promise.race([interruptPromise, timeoutPromise]);
 
     clearTimeout(timeoutId!);
     this.timeoutIds = this.timeoutIds.filter(id => id !== timeoutId);
     this.interrupts = this.interrupts.filter(res => res !== interruptResolve);
+    if (onAbort && signal) {
+      signal.removeEventListener('abort', onAbort);
+    }
 
     if (shouldThrow) {
-      throw new InterruptError('Interrupted.');
+      throw signal?.reason ?? new InterruptError('Interrupted.');
     }
   }
 
@@ -87,4 +105,29 @@ export function sleep<T>(ms: number, returnValue?: T): Promise<T> {
 export function sleepUntil<T>(target: Date, now: Date, returnValue?: T): Promise<T> {
   const ms = target.getTime() - now.getTime();
   return sleep(ms, returnValue);
+}
+
+/**
+ * Sleeps for the given duration. If an AbortSignal is provided, the sleep
+ * rejects with `signal.reason` (or AbortError) when the signal fires.
+ * Without a signal, behaves identically to `sleep()`.
+ */
+export function abortableSleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (!signal) {
+    return sleep(ms);
+  }
+  if (signal.aborted) {
+    return Promise.reject(signal.reason ?? new AbortError('Aborted'));
+  }
+  return new Promise<void>((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason ?? new AbortError('Aborted'));
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
 }
