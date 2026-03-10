@@ -7,6 +7,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { readArtifactFiles } from './utils/artifacts.js';
+import { assertAztecVersionMatches } from './utils/assert_aztec_version_matches.js';
 import { needsRecompile } from './utils/needs_recompile.js';
 import { run } from './utils/spawn.js';
 
@@ -139,6 +140,8 @@ async function checkNoTestsInContracts(nargo: string, log: LogFn): Promise<void>
 
 /** Compiles Aztec Noir contracts and postprocesses artifacts. */
 async function compileAztecContract(nargoArgs: string[], log: LogFn): Promise<void> {
+  await assertAztecVersionMatches(log);
+
   if (!(await needsRecompile())) {
     log('No source changes detected, skipping compilation.');
     return;
