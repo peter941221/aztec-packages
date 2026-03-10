@@ -6,7 +6,7 @@ description: "Wire all components into a complete Pod Racing webapp and run it"
 
 # Putting It Together
 
-In this final section you wire all the components together into a working app and run it.
+In this final section, you wire all the components together into a working app and run it.
 
 ## Entry point
 
@@ -70,7 +70,7 @@ Open `http://localhost:5173`.
 
 ### Against devnet
 
-1. Install an Aztec wallet browser extension
+1. Build and install the tutorial wallet extension (see [`test-extension/README.md`](https://github.com/AztecProtocol/aztec-packages/tree/master/docs/examples/webapp-tutorial/test-extension) for build and install instructions)
 2. Run `yarn dev`
 3. Select "Devnet" → connect via the wallet extension → verify emojis match
 4. Play the same flow as above (share the contract address with your opponent)
@@ -97,7 +97,7 @@ Ensure SponsoredFPC is registered with PXE. The `EmbeddedWallet` does this autom
 
 Make sure the `aztec` CLI is installed and matches your package versions. Run `aztec --version` to check. The `Nargo.toml` dependency path must point to a valid `aztec-nr` location.
 
-## What's next
+## Next steps
 
 You now have a working Aztec webapp. From here you could:
 
