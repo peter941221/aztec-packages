@@ -24,6 +24,10 @@ contract DeployRollupForUpgradeTest is Test {
   // Load environment variables from generated/default.json
   // This file is copied from spartan/environments/default.json by bootstrap.sh
   function setUp() public {
+    if (vm.envOr("FORGE_COVERAGE", false)) {
+      vm.skip(true);
+    }
+
     string memory root = vm.projectRoot();
     string memory path = string.concat(root, "/generated/default.json");
     string memory json = vm.readFile(path);

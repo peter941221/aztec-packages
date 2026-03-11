@@ -64,6 +64,10 @@ contract Tmnt395Test is TestBase {
   }
 
   function test_malleability_g1() external {
+    if (vm.envOr("FORGE_COVERAGE", false)) {
+      vm.skip(true);
+    }
+
     address withdrawer = makeAddr("withdrawer");
     address attester1 = makeAddr("attester1");
     address attester2 = makeAddr("attester2");
