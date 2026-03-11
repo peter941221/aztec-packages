@@ -206,7 +206,7 @@ contract EscapeHatchSelectCandidatesTest is EscapeHatchBase {
     // 3. remove active (5 sstore :skull:)
     // 4. status update (1 sstore)
     // 5. exitable at update (1 sstore, same slot as above)
-    uint256 expectedWrites = vm.envOr("FORGE_COVERAGE", false) ? 12 : 9;
+    uint256 expectedWrites = isCoverage() ? 12 : 9;
     assertEq(writes.length, expectedWrites, "invalid number of writes");
 
     // Verify hatch is prepared

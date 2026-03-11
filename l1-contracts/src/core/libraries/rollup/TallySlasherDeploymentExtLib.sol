@@ -17,11 +17,10 @@ import {TallySlashingProposer} from "@aztec/core/slashing/TallySlashingProposer.
  *      to resolve the circular dependency between Slasher and TallySlashingProposer.
  */
 library TallySlasherDeploymentExtLib {
-  function deployTallySlasher(
-    address _rollup,
-    address _governance,
-    RollupConfigInput memory _config
-  ) external returns (ISlasher) {
+  function deployTallySlasher(address _rollup, address _governance, RollupConfigInput memory _config)
+    external
+    returns (ISlasher)
+  {
     // Deploy slasher first
     Slasher slasher = new Slasher(_config.slashingVetoer, _governance, _config.slashingDisableDuration);
 

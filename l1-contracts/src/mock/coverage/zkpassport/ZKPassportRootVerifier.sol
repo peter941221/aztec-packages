@@ -1,4 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
+// Coverage-only mock with intentionally minimal interface behavior.
+// solhint-disable imports-order
+// solhint-disable immutable-vars-naming
+// solhint-disable comprehensive-interface
+// solhint-disable no-empty-blocks
+// solhint-disable ordering
+// solhint-disable reason-string
+// solhint-disable gas-custom-errors
 pragma solidity >=0.8.27;
 
 import {ProofVerificationParams} from "./Types.sol";
@@ -27,16 +35,13 @@ contract ZKPassportRootVerifier {
     helpers[_version] = _helper;
   }
 
-  function verify(ProofVerificationParams calldata _params)
-    external
-    view
-    returns (bool, bytes32, ZKPassportHelper)
-  {
+  function verify(ProofVerificationParams calldata _params) external view returns (bool, bytes32, ZKPassportHelper) {
     uint256 proofExpiry = PROOF_GENERATION_TIMESTAMP + _params.serviceConfig.validityPeriodInSeconds;
     require(block.timestamp <= proofExpiry, "The proof was generated outside the validity period");
 
     uint256 publicInputsLength = _params.proofVerificationData.publicInputs.length;
-    bytes32 nullifier = publicInputsLength == 0 ? bytes32(0) : _params.proofVerificationData.publicInputs[publicInputsLength - 1];
+    bytes32 nullifier =
+      publicInputsLength == 0 ? bytes32(0) : _params.proofVerificationData.publicInputs[publicInputsLength - 1];
     address helper = helpers[_params.version];
     return (true, nullifier, ZKPassportHelper(helper));
   }

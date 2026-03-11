@@ -2,21 +2,17 @@
 // Copyright 2024 Aztec Labs.
 pragma solidity >=0.8.27;
 
-import {Test} from "forge-std/Test.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
+import {TestBase} from "@test/base/Base.sol";
 import {DeployAztecL1Contracts} from "../../script/deploy/DeployAztecL1Contracts.s.sol";
 
-contract DeployAztecL1ContractsTest is Test {
+contract DeployAztecL1ContractsTest is TestBase {
   using stdJson for string;
 
   // Load environment variables from generated/default.json
   // This file is copied from spartan/environments/default.json by bootstrap.sh
-  function setUp() public {
-    if (vm.envOr("FORGE_COVERAGE", false)) {
-      vm.skip(true);
-    }
-
+  function setUp() public skipWhenCoverage {
     string memory root = vm.projectRoot();
     string memory path = string.concat(root, "/generated/default.json");
     string memory json = vm.readFile(path);

@@ -18,11 +18,10 @@ import {EmpireSlashingProposer} from "@aztec/core/slashing/EmpireSlashingPropose
  *      initialization to resolve circular dependency between Slasher and EmpireSlashingProposer.
  */
 library EmpireSlasherDeploymentExtLib {
-  function deployEmpireSlasher(
-    address _rollup,
-    address _governance,
-    RollupConfigInput memory _config
-  ) external returns (ISlasher) {
+  function deployEmpireSlasher(address _rollup, address _governance, RollupConfigInput memory _config)
+    external
+    returns (ISlasher)
+  {
     // Deploy slasher first
     Slasher slasher = new Slasher(_config.slashingVetoer, _governance, _config.slashingDisableDuration);
 

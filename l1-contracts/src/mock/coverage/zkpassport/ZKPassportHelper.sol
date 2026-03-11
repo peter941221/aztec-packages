@@ -1,4 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
+// Coverage-only mock with intentionally minimal interface behavior.
+// solhint-disable imports-order
+// solhint-disable immutable-vars-naming
+// solhint-disable comprehensive-interface
 pragma solidity >=0.8.27;
 
 import {BoundData} from "./Types.sol";

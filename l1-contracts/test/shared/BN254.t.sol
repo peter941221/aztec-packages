@@ -23,7 +23,7 @@ contract BN254KeyTest is BN254Fixtures {
       FixtureKey memory key = fixtureData.sampleKeys[i];
       key.pk2.x0++;
       G1Point memory sigma = signRegistrationDigest(key.sk);
-      if (vm.envOr("FORGE_COVERAGE", false)) {
+      if (isCoverage()) {
         vm.expectRevert();
       } else {
         vm.expectRevert(abi.encodeWithSelector(BN254Lib.PairingFail.selector));

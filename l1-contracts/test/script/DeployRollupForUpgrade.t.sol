@@ -2,9 +2,9 @@
 // Copyright 2024 Aztec Labs.
 pragma solidity >=0.8.27;
 
-import {Test} from "forge-std/Test.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
+import {TestBase} from "@test/base/Base.sol";
 import {DeployAztecL1Contracts, DeployAztecL1ContractsOutput} from "../../script/deploy/DeployAztecL1Contracts.s.sol";
 import {DeployRollupForUpgrade} from "../../script/deploy/DeployRollupForUpgrade.s.sol";
 import {Rollup} from "@aztec/core/Rollup.sol";
@@ -18,16 +18,12 @@ import {Registry} from "@aztec/governance/Registry.sol";
  *      2. It uses existing infrastructure contracts correctly
  *      3. The new rollup is properly registered (if deployer is owner)
  */
-contract DeployRollupForUpgradeTest is Test {
+contract DeployRollupForUpgradeTest is TestBase {
   using stdJson for string;
 
   // Load environment variables from generated/default.json
   // This file is copied from spartan/environments/default.json by bootstrap.sh
-  function setUp() public {
-    if (vm.envOr("FORGE_COVERAGE", false)) {
-      vm.skip(true);
-    }
-
+  function setUp() public skipWhenCoverage {
     string memory root = vm.projectRoot();
     string memory path = string.concat(root, "/generated/default.json");
     string memory json = vm.readFile(path);

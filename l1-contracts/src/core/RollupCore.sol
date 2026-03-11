@@ -257,58 +257,6 @@ contract RollupCore is EIP712("Aztec Rollup", "1"), Ownable, IStakingCore, IVali
     FeeLib.initialize(_config.manaTarget, _config.provingCostPerMana, _config.initialEthPerFeeAsset);
   }
 
-  function _deploySlasher(RollupConfigInput memory _config, address _governance) internal returns (ISlasher slasher) {
-    // We call one external library or another based on the slasher flavor
-    // This allows us to keep the slash flavors in separate external libraries so we do not exceed max contract size
-    // Note that we do not deploy a slasher if we run with no committees (i.e. targetCommitteeSize == 0)
-    if (_config.targetCommitteeSize == 0 || _config.slasherFlavor == SlasherFlavor.NONE) {
-      return ISlasher(address(0));
-    }
-
-    if (_config.slasherFlavor == SlasherFlavor.TALLY) {
-      return TallySlasherDeploymentExtLib.deployTallySlasher(address(this), _governance, _config);
-    }
-
-    return EmpireSlasherDeploymentExtLib.deployEmpireSlasher(address(this), _governance, _config);
-  }
-
-  function _initializeRewards(RollupConfigInput memory _config) internal {
-    RewardConfig memory rewardConfig = _config.rewardConfig;
-
-    if (address(rewardConfig.booster) == address(0)) {
-      rewardConfig.booster = RewardExtLib.deployRewardBooster(_config.rewardBoostConfig);
-    }
-
-    RewardExtLib.initialize(_config.earliestRewardsClaimableTimestamp);
-    RewardExtLib.setConfig(rewardConfig);
-  }
-
-  function _initializeStore(
-    IERC20 _feeAsset,
-    IVerifier _epochProofVerifier,
-    GenesisState memory _genesisState,
-    RollupConfigInput memory _config
-  ) internal {
-    STFLib.initialize(_genesisState);
-    RollupStore storage rollupStore = STFLib.getStorage();
-
-    rollupStore.config.feeAsset = _feeAsset;
-    rollupStore.config.epochProofVerifier = _epochProofVerifier;
-    rollupStore.config.version = _config.version;
-
-    IInbox inbox = IInbox(
-      address(
-        new Inbox(
-          address(this), _feeAsset, _config.version, Constants.L1_TO_L2_MSG_SUBTREE_HEIGHT, _config.inboxLag
-        )
-      )
-    );
-
-    rollupStore.config.inbox = inbox;
-    rollupStore.config.outbox = IOutbox(address(new Outbox(address(this), _config.version)));
-    rollupStore.config.feeAssetPortal = IFeeJuicePortal(inbox.getFeeAssetPortal());
-  }
-
   /**
    * @notice Updates the reward configuration for sequencers and provers
    * @dev Only callable by the contract owner. Updates how rewards are calculated and distributed.
@@ -641,5 +589,55 @@ contract RollupCore is EIP712("Aztec Rollup", "1"), Ownable, IStakingCore, IVali
    */
   function getActiveAttesterCount() public view override(IStakingCore) returns (uint256) {
     return StakingLib.getAttesterCountAtTime(Timestamp.wrap(block.timestamp));
+  }
+
+  function _deploySlasher(RollupConfigInput memory _config, address _governance) internal returns (ISlasher slasher) {
+    // We call one external library or another based on the slasher flavor
+    // This allows us to keep the slash flavors in separate external libraries so we do not exceed max contract size
+    // Note that we do not deploy a slasher if we run with no committees (i.e. targetCommitteeSize == 0)
+    if (_config.targetCommitteeSize == 0 || _config.slasherFlavor == SlasherFlavor.NONE) {
+      return ISlasher(address(0));
+    }
+
+    if (_config.slasherFlavor == SlasherFlavor.TALLY) {
+      return TallySlasherDeploymentExtLib.deployTallySlasher(address(this), _governance, _config);
+    }
+
+    return EmpireSlasherDeploymentExtLib.deployEmpireSlasher(address(this), _governance, _config);
+  }
+
+  function _initializeRewards(RollupConfigInput memory _config) internal {
+    RewardConfig memory rewardConfig = _config.rewardConfig;
+
+    if (address(rewardConfig.booster) == address(0)) {
+      rewardConfig.booster = RewardExtLib.deployRewardBooster(_config.rewardBoostConfig);
+    }
+
+    RewardExtLib.initialize(_config.earliestRewardsClaimableTimestamp);
+    RewardExtLib.setConfig(rewardConfig);
+  }
+
+  function _initializeStore(
+    IERC20 _feeAsset,
+    IVerifier _epochProofVerifier,
+    GenesisState memory _genesisState,
+    RollupConfigInput memory _config
+  ) internal {
+    STFLib.initialize(_genesisState);
+    RollupStore storage rollupStore = STFLib.getStorage();
+
+    rollupStore.config.feeAsset = _feeAsset;
+    rollupStore.config.epochProofVerifier = _epochProofVerifier;
+    rollupStore.config.version = _config.version;
+
+    IInbox inbox = IInbox(
+      address(
+        new Inbox(address(this), _feeAsset, _config.version, Constants.L1_TO_L2_MSG_SUBTREE_HEIGHT, _config.inboxLag)
+      )
+    );
+
+    rollupStore.config.inbox = inbox;
+    rollupStore.config.outbox = IOutbox(address(new Outbox(address(this), _config.version)));
+    rollupStore.config.feeAssetPortal = IFeeJuicePortal(inbox.getFeeAssetPortal());
   }
 }

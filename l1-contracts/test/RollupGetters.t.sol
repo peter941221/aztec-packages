@@ -141,7 +141,7 @@ contract RollupShouldBeGetters is ValidatorSelectionTestBase {
     (, bytes32[] memory writes) = vm.accesses(address(rollup.getGSE()));
     assertEq(writes.length, 0, "No writes should be done");
 
-    if (vm.envOr("FORGE_COVERAGE", false)) {
+    if (isCoverage()) {
       return;
     }
 
@@ -207,7 +207,7 @@ contract RollupShouldBeGetters is ValidatorSelectionTestBase {
     emit log_named_uint("gasSmall", gasSmall);
     emit log_named_uint("gasBig", gasBig);
 
-    if (vm.envOr("FORGE_COVERAGE", false)) {
+    if (isCoverage()) {
       return;
     }
 

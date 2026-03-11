@@ -196,7 +196,8 @@ contract FeeRollupTest is FeeModelTestPoints, DecoderBase {
     returns (uint256 fee, uint256 burn, uint256 proverFee)
   {
     TestPoint memory point = points[_checkpointNumber - 1];
-    uint256 minFee = point.outputs.mana_min_fee_components_in_fee_asset.sequencer_cost
+    uint256 minFee =
+      point.outputs.mana_min_fee_components_in_fee_asset.sequencer_cost
       + point.outputs.mana_min_fee_components_in_fee_asset.prover_cost
       + point.outputs.mana_min_fee_components_in_fee_asset.congestion_cost;
     uint256 manaUsed = rollup.getFeeHeader(_checkpointNumber).manaUsed;
