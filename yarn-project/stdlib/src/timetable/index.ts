@@ -43,6 +43,7 @@ export function calculateMaxBlocksPerSlot(
     p2pPropagationTime?: number;
     l1PublishingTime?: number;
     pipelining?: boolean;
+    lastBlockDurationSec?: number;
   } = {},
 ): number {
   if (!blockDurationSec) {
@@ -53,22 +54,27 @@ export function calculateMaxBlocksPerSlot(
   const assembleTime = opts.checkpointAssembleTime ?? CHECKPOINT_ASSEMBLE_TIME;
   const p2pTime = opts.p2pPropagationTime ?? DEFAULT_P2P_PROPAGATION_TIME;
   const l1Time = opts.l1PublishingTime ?? DEFAULT_L1_PUBLISHING_TIME;
+  const lastBlockDur = opts.lastBlockDurationSec;
 
   // Calculate checkpoint finalization time (assembly + round-trip propagation + L1 publishing)
   const checkpointFinalizationTime = assembleTime + p2pTime * 2 + l1Time;
 
   // When pipelining, finalization is deferred to the next slot, so we only reserve
-  // time for assembly + one-way broadcast. Without pipelining, we also need a full
-  // block duration for validator re-execution plus full checkpoint finalization.
+  // time for assembly + one-way broadcast. Without pipelining, we also need
+  // validator re-execution (using lastBlockDuration if shorter) plus full checkpoint finalization.
   let timeReservedAtEnd: number;
   if (opts.pipelining) {
     timeReservedAtEnd = assembleTime + p2pTime;
   } else {
-    timeReservedAtEnd = blockDurationSec + checkpointFinalizationTime;
+    const reexecutionTime = lastBlockDur ?? blockDurationSec;
+    timeReservedAtEnd = reexecutionTime + checkpointFinalizationTime;
   }
 
   // Time available for building blocks
   const timeAvailableForBlocks = aztecSlotDurationSec - initOffset - timeReservedAtEnd;
 
+  if (lastBlockDur !== undefined && lastBlockDur < blockDurationSec) {
+    return Math.max(1, Math.floor((timeAvailableForBlocks - lastBlockDur) / blockDurationSec) + 1);
+  }
   return Math.max(1, Math.floor(timeAvailableForBlocks / blockDurationSec));
 }

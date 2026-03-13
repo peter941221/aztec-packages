@@ -3579,10 +3579,10 @@ describe('KVArchiverDataStore', () => {
     });
   });
 
-  describe('pendingCheckpointNumber', () => {
-    it('returns initial value when no pending checkpoint is set', async () => {
-      const pending = await store.blockStore.getPendingCheckpointNumber();
-      expect(pending).toBe(INITIAL_CHECKPOINT_NUMBER - 1);
+  describe('pendingCheckpoint', () => {
+    it('returns undefined when no pending checkpoint is set', async () => {
+      const pending = await store.blockStore.getPendingCheckpoint();
+      expect(pending).toBeUndefined();
     });
 
     it('stores and retrieves pending checkpoint number', async () => {
@@ -3645,8 +3645,8 @@ describe('KVArchiverDataStore', () => {
       await store.addCheckpoints([checkpoint2]);
 
       // Pending checkpoint should be cleared
-      const pending = await store.blockStore.getPendingCheckpointNumber();
-      expect(pending).toBe(INITIAL_CHECKPOINT_NUMBER - 1);
+      const pending = await store.blockStore.getPendingCheckpoint();
+      expect(pending).toBeUndefined();
     });
 
     it('ignores pending checkpoint that is more than 1 ahead of confirmed', async () => {
@@ -3722,8 +3722,8 @@ describe('KVArchiverDataStore', () => {
       // Remove checkpoints after 1 (removes checkpoint 2, and pending 3 should be cleared)
       await store.removeCheckpointsAfter(CheckpointNumber(1));
 
-      const pending = await store.blockStore.getPendingCheckpointNumber();
-      expect(pending).toBe(INITIAL_CHECKPOINT_NUMBER - 1);
+      const pending = await store.blockStore.getPendingCheckpoint();
+      expect(pending).toBeUndefined();
     });
 
     it('does not clear pending checkpoint when removing checkpoints before it', async () => {

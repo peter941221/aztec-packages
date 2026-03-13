@@ -1007,7 +1007,7 @@ describe('aztec node', () => {
       jest.restoreAllMocks();
     });
 
-    it('sets pending checkpoint from proposal archive', async () => {
+    it('sets pending checkpoint data from proposal archive', async () => {
       const archive = Fr.random();
       const checkpoint = (await makeCheckpointProposal({ archiveRoot: archive })).toCore();
 

@@ -179,7 +179,9 @@ export class BlockStore {
 
       // Extract the latest block and checkpoint numbers
       const previousBlockNumber = await this.getLatestBlockNumber();
-      const pendingCheckpointNumber = await this.getPendingCheckpointNumber();
+      const pendingCheckpoint = await this.getPendingCheckpoint();
+      const pendingCheckpointNumber =
+        pendingCheckpoint?.checkpointNumber ?? CheckpointNumber(INITIAL_CHECKPOINT_NUMBER - 1);
       const previousCheckpointNumber = await this.getLatestCheckpointNumber();
 
       // Verify we're not overwriting checkpointed blocks
@@ -358,11 +360,11 @@ export class BlockStore {
       // Clear the pending checkpoint if the confirmed checkpoints have caught up to it,
       // but only if there are no uncheckpointed blocks beyond the confirmed chain.
       // Pipelining may have built blocks for the next checkpoint on top of the pending one;
-      // clearing pendingCheckpointNumber while those blocks exist breaks the pipelining skip
+      // clearing pending checkpoint while those blocks exist breaks the pipelining skip
       // condition, causing the sequencer to fall through to L1 checks with a stale archive.
-      const pendingCheckpointNumber = await this.getPendingCheckpointNumber();
+      const pendingCheckpoint = await this.getPendingCheckpoint();
       const lastConfirmedCheckpointNumber = checkpoints[checkpoints.length - 1].checkpoint.number;
-      if (pendingCheckpointNumber <= lastConfirmedCheckpointNumber) {
+      if (pendingCheckpoint && pendingCheckpoint.checkpointNumber <= lastConfirmedCheckpointNumber) {
         const lastConfirmedBlock = checkpoints[checkpoints.length - 1].checkpoint.blocks.at(-1);
         const lastBlockNumber = await this.getLatestBlockNumber();
         if (!lastConfirmedBlock || lastBlockNumber <= lastConfirmedBlock.number) {
@@ -468,8 +470,8 @@ export class BlockStore {
       }
 
       // Clear any pending checkpoint that was removed
-      const pendingCheckpointNumber = await this.getPendingCheckpointNumber();
-      if (pendingCheckpointNumber > checkpointNumber) {
+      const pendingCheckpoint = await this.getPendingCheckpoint();
+      if (pendingCheckpoint && pendingCheckpoint.checkpointNumber > checkpointNumber) {
         await this.#pendingCheckpoint.delete();
       }
 

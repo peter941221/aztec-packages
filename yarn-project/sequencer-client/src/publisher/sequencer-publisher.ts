@@ -1509,22 +1509,22 @@ export class SequencerPublisher {
         : []
     ).flatMap(override => override.stateDiff ?? []);
 
-    // override the fee header for a specific checkpoint number if requested (used when pipelining)
-    const forcePendingFeeHeaderStateDiff = (
-      options.forcePendingFeeHeader !== undefined
-        ? await this.rollupContract.makeFeeHeaderOverride(
-            options.forcePendingFeeHeader.checkpointNumber,
-            options.forcePendingFeeHeader.feeHeader,
-          )
-        : []
-    ).flatMap(override => override.stateDiff ?? []);
-
     // override the archive for a specific checkpoint number if requested (used when pipelining)
     const forcePendingArchiveStateDiff = (
       options.forcePendingArchive !== undefined
         ? this.rollupContract.makeArchiveOverride(
             options.forcePendingArchive.checkpointNumber,
             options.forcePendingArchive.archive,
+          )
+        : []
+    ).flatMap(override => override.stateDiff ?? []);
+
+    // override the fee header for a specific checkpoint number if requested (used when pipelining)
+    const forcePendingFeeHeaderStateDiff = (
+      options.forcePendingFeeHeader !== undefined
+        ? await this.rollupContract.makeFeeHeaderOverride(
+            options.forcePendingFeeHeader.checkpointNumber,
+            options.forcePendingFeeHeader.feeHeader,
           )
         : []
     ).flatMap(override => override.stateDiff ?? []);
