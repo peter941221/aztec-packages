@@ -766,7 +766,9 @@
       "inheritConfigureEnvironment": true,
       "jobs": 0,
       "targets": [
-        "barretenberg.wasm.gz"
+        "barretenberg.wasm",
+        "barretenberg.wasm.gz",
+        "barretenberg-debug.wasm"
       ]
     },
     {
@@ -774,10 +776,7 @@
       "configurePreset": "wasm-threads-dbg",
       "inheritConfigureEnvironment": true,
       "jobs": 0,
-      "targets": [
-        "barretenberg.wasm",
-        "bb"
-      ]
+      "targets": ["barretenberg.wasm", "bb"]
     },
     {
       "name": "wasm-threads",
@@ -785,7 +784,9 @@
       "inheritConfigureEnvironment": true,
       "jobs": 0,
       "targets": [
+        "barretenberg.wasm",
         "barretenberg.wasm.gz",
+        "barretenberg-debug.wasm",
         "ecc_tests",
         "ultra_honk_bench",
         "chonk_bench",
