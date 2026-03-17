@@ -89,7 +89,10 @@ export class ChonkProof {
 
     if (firstUint32 === CHONK_PROOF_LENGTH) {
       // Legacy format: firstUint32 is the field count (1632)
-      const proof = reader.readArray(firstUint32, Fr);
+      // Widen to `number` to prevent TS from narrowing to literal 1632,
+      // which would cause Tuple<Fr, 1632> to exceed the recursion limit.
+      const fieldCount: number = firstUint32;
+      const proof = reader.readArray(fieldCount, Fr);
       return new ChonkProof(proof);
     }
 
@@ -113,7 +116,7 @@ export class ChonkProof {
     const flatFields = flattenChonkProofFields(result.proof);
     const fields = flatFields.map(f => Fr.fromBuffer(Buffer.from(f)));
 
-    // The decompressed proof includes public inputs in megaProof.
+    // The decompressed proof includes public inputs in hidingOinkProof.
     // Since ChonkProof stores fields WITHOUT public inputs, strip them.
     // The number of public inputs = total fields - CHONK_PROOF_LENGTH
     if (fields.length > CHONK_PROOF_LENGTH) {
