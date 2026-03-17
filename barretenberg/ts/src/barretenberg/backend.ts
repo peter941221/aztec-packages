@@ -287,7 +287,7 @@ export interface AztecClientProveResult {
   /** Verification key bytes. */
   vk: Uint8Array;
   /** Chonk-compressed proof bytes (point compression + u256 encoding, ~1.7x smaller). */
-  compressedProof: Uint8Array;
+  compressedProof?: Uint8Array;
 }
 
 /**
@@ -319,17 +319,8 @@ export class AztecClientBackend {
   async prove(
     witnessBuf: Uint8Array[],
     vksBuf?: Uint8Array[],
-  ): Promise<[Uint8Array[], Uint8Array, Uint8Array]>;
-  async prove(
-    witnessBuf: Uint8Array[],
-    vksBuf: Uint8Array[] | undefined,
-    options: { compress: true },
-  ): Promise<AztecClientProveResult>;
-  async prove(
-    witnessBuf: Uint8Array[],
-    vksBuf?: Uint8Array[],
-    options?: { compress: boolean },
-  ): Promise<[Uint8Array[], Uint8Array, Uint8Array] | AztecClientProveResult> {
+    options?: { compress?: boolean },
+  ): Promise<AztecClientProveResult> {
     vksBuf = vksBuf ?? [];
     if (vksBuf.length !== 0 && this.acirBuf.length !== witnessBuf.length) {
       throw new AztecClientBackendError('Witness and bytecodes must have the same stack depth!');
@@ -384,18 +375,11 @@ export class AztecClientBackend {
       throw new AztecClientBackendError('Failed to verify the private (Chonk) transaction proof!');
     }
 
-    if (options?.compress) {
-      // Compress the proof using chonk compression (point compression + u256 encoding)
-      const compressResult = await this.api.chonkCompressProof({ proof: proveResult.proof });
-      return {
-        proofFields,
-        proof,
-        vk: vkResult.bytes,
-        compressedProof: compressResult.compressedProof,
-      };
-    }
+    const compressedProof = options?.compress
+      ? (await this.api.chonkCompressProof({ proof: proveResult.proof })).compressedProof
+      : undefined;
 
-    return [proofFields, proof, vkResult.bytes];
+    return { proofFields, proof, vk: vkResult.bytes, compressedProof };
   }
 
   async verify(proof: Uint8Array, vk: Uint8Array): Promise<boolean> {

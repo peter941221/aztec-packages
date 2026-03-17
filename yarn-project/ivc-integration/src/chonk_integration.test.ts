@@ -41,7 +41,7 @@ describe.each([BackendType.Wasm, BackendType.NativeUnixSocket])('Client IVC Inte
     it('Should generate a verifiable client IVC proof from a simple mock tx via bb.js, verified by bb', async () => {
       const [bytecodes, witnessStack, , vks] = await generateTestingIVCStack(1, 0);
       const backend = new AztecClientBackend(bytecodes, barretenberg);
-      const [, proof, vk] = await backend.prove(witnessStack, vks);
+      const { proof, vk } = await backend.prove(witnessStack, vks);
       const verified = await backend.verify(proof, vk);
       expect(verified).toBe(true);
     });
@@ -57,7 +57,7 @@ describe.each([BackendType.Wasm, BackendType.NativeUnixSocket])('Client IVC Inte
     it('Should generate a verifiable client IVC proof from a complex mock tx', async () => {
       const [bytecodes, witnessStack, , vks] = await generateTestingIVCStack(1, 1);
       const backend = new AztecClientBackend(bytecodes, barretenberg);
-      const [, proof, vk] = await backend.prove(witnessStack, vks);
+      const { proof, vk } = await backend.prove(witnessStack, vks);
       const verified = await backend.verify(proof, vk);
       expect(verified).toBe(true);
     });
@@ -65,7 +65,7 @@ describe.each([BackendType.Wasm, BackendType.NativeUnixSocket])('Client IVC Inte
     it('Should compress and decompress a client IVC proof via bbapi', async () => {
       const [bytecodes, witnessStack, , vks] = await generateTestingIVCStack(1, 0);
       const ivcBackend = new AztecClientBackend(bytecodes, barretenberg);
-      const [, proof, vk] = await ivcBackend.prove(witnessStack, vks);
+      const { proof, vk } = await ivcBackend.prove(witnessStack, vks);
 
       // Decode the msgpack-encoded proof back to a ChonkProof object
       const chonkProof = toChonkProof(new Decoder({ useRecords: false }).decode(proof));

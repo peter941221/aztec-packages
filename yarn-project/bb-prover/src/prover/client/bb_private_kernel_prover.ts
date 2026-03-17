@@ -296,7 +296,7 @@ export abstract class BBPrivateKernelProver implements PrivateKernelProver {
       eventName: 'client-ivc-proof-generation',
       duration: timer.ms(),
       proofSize: result.proofFields.length,
-      compressedSize: result.compressedProof.length,
+      compressedSize: result.compressedProof?.length,
     });
 
     // Create ChonkProofWithPublicInputs from the flat field elements
@@ -305,7 +305,7 @@ export abstract class BBPrivateKernelProver implements PrivateKernelProver {
     // Attach compressed proof bytes to the ChonkProof (without public inputs).
     // The compressed bytes are for the full proof WITH public inputs from bb;
     // when deserializing, the decompressor will strip them to match CHONK_PROOF_LENGTH.
-    proofWithPubInputs.compressedProof = Buffer.from(result.compressedProof);
+    proofWithPubInputs.compressedProof = result.compressedProof ? Buffer.from(result.compressedProof) : undefined;
 
     return proofWithPubInputs;
   }
