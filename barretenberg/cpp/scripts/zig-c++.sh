@@ -6,11 +6,11 @@
 # Sapphire Rapids) that would produce binaries incompatible with other machines.
 # cmake's arch.cmake handles -march=skylake for x86; ARM gets baseline aarch64 (no SVE).
 if [[ "$(uname -s)" == "Linux" ]]; then
-  if [[ "$(uname -m)" == "aarch64" ]]; then
-    exec zig c++ -target aarch64-linux-gnu.2.35 "$@"
-  else
-    exec zig c++ -target x86_64-linux-gnu.2.35 "$@"
-  fi
+  case "$(uname -m)" in
+    aarch64|arm64) exec zig c++ -target aarch64-linux-gnu.2.35 "$@" ;;
+    x86_64|amd64)  exec zig c++ -target x86_64-linux-gnu.2.35 "$@" ;;
+    *)             echo "Error: unsupported architecture '$(uname -m)'" >&2; exit 1 ;;
+  esac
 else
   exec zig c++ "$@"
 fi
