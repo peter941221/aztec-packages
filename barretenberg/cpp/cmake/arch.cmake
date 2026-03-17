@@ -5,9 +5,9 @@ if(WASM)
     add_compile_options(-fno-exceptions -fno-slp-vectorize)
 endif()
 
-# Target skylake on x86 for AVX2 etc. Skipped on ARM — the zig wrapper scripts
-# use explicit aarch64 targets to produce generic ARM64 code without CPU-specific
-# extensions (e.g. SVE on Graviton) that would break on Apple Silicon.
-if(NOT WASM AND NOT ARM)
+# Target skylake on x86 for AVX2 etc. ARM is handled by the zig wrapper scripts
+# which use explicit aarch64 targets to produce generic ARM64 code without
+# CPU-specific extensions (e.g. SVE on Graviton) that would break on Apple Silicon.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     add_compile_options(-march=skylake)
 endif()
