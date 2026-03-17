@@ -165,7 +165,8 @@ _prodlike: &prodlike
   # Before this block, proofs are serialized in legacy (uncompressed) format.
   # At or after this block, proofs use compressed format (~1.7x smaller).
   # Set to 0 to always use compressed format, or omit to never compress.
-  AZTEC_PROOF_COMPRESSION_ACTIVATION_BLOCK: 0
+  # Disabled by default until all nodes support the compressed format.
+  # AZTEC_PROOF_COMPRESSION_ACTIVATION_BLOCK: 0
 
   #---------------------------------------------------------------------------
   # P2P & Network
