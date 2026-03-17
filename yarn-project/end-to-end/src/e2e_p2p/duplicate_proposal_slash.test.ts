@@ -130,13 +130,10 @@ describe('e2e_p2p_duplicate_proposal_slash', () => {
         validatorPrivateKey: maliciousPrivateKeyHex,
         coinbase: coinbase1,
         broadcastEquivocatedProposals: true,
-<<<<<<< HEAD
-=======
         dontStartSequencer: true,
         // Prevent HA peer proposals from being added to the archiver, so both
         // malicious nodes build their own blocks instead of one yielding to the other.
         skipPushProposedBlocksToArchiver: true,
->>>>>>> 5fd6fd7b6b (fix: prevent HA peer proposals from blocking equivocation in duplicate proposal test (#21673))
       },
       t.ctx.dateProvider,
       BOOT_NODE_UDP_PORT + 1,
@@ -154,13 +151,10 @@ describe('e2e_p2p_duplicate_proposal_slash', () => {
         validatorPrivateKey: maliciousPrivateKeyHex,
         coinbase: coinbase2,
         broadcastEquivocatedProposals: true,
-<<<<<<< HEAD
-=======
         dontStartSequencer: true,
         // Prevent HA peer proposals from being added to the archiver, so both
         // malicious nodes build their own blocks instead of one yielding to the other.
         skipPushProposedBlocksToArchiver: true,
->>>>>>> 5fd6fd7b6b (fix: prevent HA peer proposals from blocking equivocation in duplicate proposal test (#21673))
       },
       t.ctx.dateProvider,
       BOOT_NODE_UDP_PORT + 2,
