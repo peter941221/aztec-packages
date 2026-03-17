@@ -44,86 +44,35 @@ describe('ChonkProof', () => {
     expect(withPublicInputs.fieldsWithPublicInputs.slice(1)).toEqual(proof.fields);
   });
 
-  describe('block-based compression activation', () => {
-    const ACTIVATION_BLOCK = 100;
+  describe('compressed serialization format', () => {
     const fakeCompressedBytes = Buffer.from([0xde, 0xad, 0xbe, 0xef, 0x01, 0x02, 0x03]);
 
-    function proofWithCompression(): ChonkProof {
+    it('serializes in compressed format when compressedProof is set', () => {
       const proof = ChonkProof.random();
       proof.compressedProof = fakeCompressedBytes;
-      return proof;
-    }
 
-    it('serializes in uncompressed format before activation block', () => {
-      const proof = proofWithCompression();
-      const forBlock50 = proof.forBlock(50, ACTIVATION_BLOCK);
-
-      const buf = forBlock50.toBuffer();
-      // First uint32 should be CHONK_PROOF_LENGTH (field count), not 0 (compressed indicator)
-      expect(buf.readUInt32BE(0)).toBe(CHONK_PROOF_LENGTH);
-      expect(forBlock50.compressedProof).toBeUndefined();
-    });
-
-    it('serializes in compressed format at activation block', () => {
-      const proof = proofWithCompression();
-      const forBlock100 = proof.forBlock(100, ACTIVATION_BLOCK);
-
-      const buf = forBlock100.toBuffer();
+      const buf = proof.toBuffer();
       // First uint32 should be the compressed byte count (not CHONK_PROOF_LENGTH)
       expect(buf.readUInt32BE(0)).toBe(fakeCompressedBytes.length);
       // Then the compressed bytes themselves
       expect(buf.subarray(4)).toEqual(fakeCompressedBytes);
     });
 
-    it('serializes in compressed format after activation block', () => {
-      const proof = proofWithCompression();
-      const forBlock200 = proof.forBlock(200, ACTIVATION_BLOCK);
-
-      const buf = forBlock200.toBuffer();
-      expect(buf.readUInt32BE(0)).toBe(fakeCompressedBytes.length);
-      expect(forBlock200.compressedProof).toEqual(fakeCompressedBytes);
-    });
-
-    it('serializes in uncompressed format when activation is undefined', () => {
-      const proof = proofWithCompression();
-      const forAnyBlock = proof.forBlock(999, undefined);
-
-      const buf = forAnyBlock.toBuffer();
-      expect(buf.readUInt32BE(0)).toBe(CHONK_PROOF_LENGTH);
-      expect(forAnyBlock.compressedProof).toBeUndefined();
-    });
-
-    it('returns same proof if no compression and before activation', () => {
+    it('serializes in uncompressed format when compressedProof is undefined', () => {
       const proof = ChonkProof.random();
       expect(proof.compressedProof).toBeUndefined();
-      const result = proof.forBlock(50, ACTIVATION_BLOCK);
-      expect(result).toBe(proof); // Same reference — no copy needed
+
+      const buf = proof.toBuffer();
+      expect(buf.readUInt32BE(0)).toBe(CHONK_PROOF_LENGTH);
     });
 
-    it('preserves field data when stripping compression', () => {
-      const proof = proofWithCompression();
-      const stripped = proof.forBlock(50, ACTIVATION_BLOCK);
-      expect(stripped.fields).toEqual(proof.fields);
-    });
-
-    it('uncompressed format roundtrips correctly through forBlock', () => {
-      const original = ChonkProof.random();
-      original.compressedProof = fakeCompressedBytes;
-
-      // Before activation: use uncompressed format
-      const forSerialization = original.forBlock(50, ACTIVATION_BLOCK);
-      const buf = forSerialization.toBuffer();
-      const deserialized = ChonkProof.fromBuffer(buf);
-
-      expect(deserialized.fields).toEqual(original.fields);
-      expect(deserialized.compressedProof).toBeUndefined();
-    });
-
-    it('can read uncompressed format regardless of activation setting', () => {
+    it('stripping compressedProof switches to uncompressed format', () => {
       const proof = ChonkProof.random();
-      const buf = proof.toBufferUncompressed();
-      const deserialized = ChonkProof.fromBuffer(buf);
-      expect(deserialized.fields).toEqual(proof.fields);
+      proof.compressedProof = fakeCompressedBytes;
+
+      proof.compressedProof = undefined;
+      const buf = proof.toBuffer();
+      expect(buf.readUInt32BE(0)).toBe(CHONK_PROOF_LENGTH);
     });
 
     it('detects compressed format by size (first uint32 != CHONK_PROOF_LENGTH)', () => {
@@ -133,7 +82,7 @@ describe('ChonkProof', () => {
 
       // fromBuffer should detect this as compressed format (first uint32 != 1632)
       // and attempt decompression. Since we're using fake bytes, BarretenbergSync
-      // will throw — but the format detection itself works.
+      // will throw, but the format detection itself works.
       expect(() => ChonkProof.fromBuffer(buf)).toThrow();
     });
   });

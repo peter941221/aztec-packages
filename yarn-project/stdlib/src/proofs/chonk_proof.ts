@@ -141,36 +141,6 @@ export class ChonkProof {
     // Legacy format: [field_count=1632: uint32] [fields...]
     return serializeToBuffer(this.fields.length, this.fields);
   }
-
-  /**
-   * Serialize using the legacy (uncompressed) format regardless of whether
-   * compressed bytes are available. Used when backward compatibility is required.
-   */
-  public toBufferUncompressed() {
-    return serializeToBuffer(this.fields.length, this.fields);
-  }
-
-  /**
-   * Return a ChonkProof suitable for serialization at the given block number.
-   * Before the activation block, compressed bytes are stripped so that toBuffer()
-   * produces the legacy format. At or after the activation block, compressed
-   * bytes are preserved so toBuffer() produces the compressed format.
-   *
-   * @param blockNumber - The current L2 block number
-   * @param compressionActivationBlock - The block at which compressed format is activated.
-   *   If undefined, compression is never used (legacy-only mode).
-   * @returns A ChonkProof that serializes in the appropriate format
-   */
-  public forBlock(blockNumber: number, compressionActivationBlock: number | undefined): ChonkProof {
-    if (compressionActivationBlock !== undefined && blockNumber >= compressionActivationBlock && this.compressedProof) {
-      return this;
-    }
-    // Strip compressed bytes — will serialize in legacy format
-    if (this.compressedProof) {
-      return new ChonkProof(this.fields);
-    }
-    return this;
-  }
 }
 
 export class ChonkProofWithPublicInputs {
