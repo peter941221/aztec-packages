@@ -93,46 +93,62 @@ export class HttpBlobClient implements BlobClientInterface {
   public async testSources() {
     const { l1ConsensusHostUrls } = this.config;
     const archiveUrl = this.archiveClient?.getBaseUrl();
-    this.log.info(`Testing configured blob sources`, { l1ConsensusHostUrls, archiveUrl });
 
-    let successfulSourceCount = 0;
+    let consensusSuperNodes = 0;
+    let consensusNonSuperNodes = 0;
+    let archiveSources = 0;
+    let blobSinks = 0;
 
     if (l1ConsensusHostUrls && l1ConsensusHostUrls.length > 0) {
-      for (let l1ConsensusHostIndex = 0; l1ConsensusHostIndex < l1ConsensusHostUrls.length; l1ConsensusHostIndex++) {
-        const l1ConsensusHostUrl = l1ConsensusHostUrls[l1ConsensusHostIndex];
+      for (let i = 0; i < l1ConsensusHostUrls.length; i++) {
+        const l1ConsensusHostUrl = l1ConsensusHostUrls[i];
         try {
-          const { url, ...options } = getBeaconNodeFetchOptions(
-            `${l1ConsensusHostUrl}/eth/v1/beacon/headers`,
+          // Check reachability and get head slot
+          const { url: headersUrl, ...headersOpts } = getBeaconNodeFetchOptions(
+            `${l1ConsensusHostUrl}/eth/v1/beacon/headers/head`,
             this.config,
-            l1ConsensusHostIndex,
+            i,
           );
-          const res = await this.fetch(url, options);
-          if (res.ok) {
-            this.log.info(`L1 consensus host is reachable`, { l1ConsensusHostUrl });
-            successfulSourceCount++;
-          } else {
-            this.log.error(`Failure reaching L1 consensus host: ${res.statusText} (${res.status})`, {
+          const headersRes = await this.fetch(headersUrl, headersOpts);
+          if (!headersRes.ok) {
+            this.log.error(`Failure reaching L1 consensus host: ${headersRes.statusText} (${headersRes.status})`, {
               l1ConsensusHostUrl,
             });
+            continue;
+          }
+
+          // Check if the host serves blob sidecars (supernode/semi-supernode)
+          const headersBody = await headersRes.json();
+          const headSlot = headersBody?.data?.header?.message?.slot;
+          if (headSlot) {
+            const { url: blobUrl, ...blobOpts } = getBeaconNodeFetchOptions(
+              `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${headSlot}`,
+              this.config,
+              i,
+            );
+            const blobRes = await this.fetch(blobUrl, blobOpts);
+            if (blobRes.ok) {
+              consensusSuperNodes++;
+            } else {
+              consensusNonSuperNodes++;
+            }
+          } else {
+            consensusNonSuperNodes++;
           }
         } catch (err) {
           this.log.error(`Error reaching L1 consensus host`, err, { l1ConsensusHostUrl });
         }
       }
-    } else {
-      this.log.info('No L1 consensus host urls configured');
     }
 
     if (this.archiveClient) {
       try {
         const latest = await this.archiveClient.getLatestBlock();
-        this.log.info(`Archive client is reachable and synced to L1 block ${latest.number}`, { latest, archiveUrl });
-        successfulSourceCount++;
+        this.log.debug(`Archive client synced to L1 block ${latest.number}`, { archiveUrl });
+        archiveSources++;
       } catch (err) {
         this.log.error(`Error reaching archive client`, err, { archiveUrl });
       }
-    } else {
-      this.log.info('No archive client configured');
     }
 
     if (this.fileStoreClients.length > 0) {
@@ -140,8 +156,7 @@ export class HttpBlobClient implements BlobClientInterface {
         try {
           const accessible = await fileStoreClient.testConnection();
           if (accessible) {
-            this.log.info(`FileStore is reachable`, { url: fileStoreClient.getBaseUrl() });
-            successfulSourceCount++;
+            blobSinks++;
           } else {
             this.log.warn(`FileStore is not accessible`, { url: fileStoreClient.getBaseUrl() });
           }
@@ -151,12 +166,23 @@ export class HttpBlobClient implements BlobClientInterface {
       }
     }
 
+    const successfulSourceCount = consensusSuperNodes + archiveSources + blobSinks;
+
+    let summary = `Blob client running with consensusSuperNodes=${consensusSuperNodes} archiveSources=${archiveSources} blobSinks=${blobSinks}`;
+    if (consensusNonSuperNodes > 0) {
+      summary += `. ${consensusNonSuperNodes} consensus client(s) ignored because they are not running in supernode or semi-supernode mode`;
+    }
+
     if (successfulSourceCount === 0) {
       if (this.config.blobAllowEmptySources) {
-        this.log.warn('No blob sources are reachable');
+        this.log.warn(summary);
       } else {
-        throw new Error('No blob sources are reachable');
+        throw new Error(summary);
       }
+    } else if (consensusSuperNodes === 0) {
+      this.log.warn(summary);
+    } else {
+      this.log.info(summary);
     }
   }
 
