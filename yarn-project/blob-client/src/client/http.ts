@@ -117,36 +117,32 @@ export class HttpBlobClient implements BlobClientInterface {
             continue;
           }
 
-          // Check if the host serves historical blob sidecars (supernode/semi-supernode)
-          // by querying a slot beyond the standard pruning window (4096 epochs * 32 slots = 131072 slots).
-          // Regular beacon nodes prune blobs after this window, supernodes retain them.
+          // Check if the host serves blob sidecars (supernode/semi-supernode).
+          // Query the blob sidecar endpoint on the head slot. A 200 response (even with
+          // an empty data array when no blobs were posted) means the node supports serving
+          // blob sidecars. A non-200 means it doesn't serve them at all.
           const body = await res.json();
-          const headSlot = Number(body?.data?.header?.message?.slot);
-          // Slot old enough to be outside the standard blob pruning window
-          const oldSlot = headSlot - 131072;
-          if (oldSlot > 0) {
+          const headSlot = body?.data?.header?.message?.slot;
+          if (headSlot) {
             const { url: blobUrl, ...blobOpts } = getBeaconNodeFetchOptions(
-              `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${oldSlot}`,
+              `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${headSlot}`,
               this.config,
               l1ConsensusHostIndex,
             );
             const blobRes = await this.fetch(blobUrl, blobOpts);
             if (blobRes.ok) {
-              this.log.info(`L1 consensus host is reachable and serves historical blob sidecars (supernode)`, {
+              this.log.info(`L1 consensus host is reachable and serves blob sidecars (supernode)`, {
                 l1ConsensusHostUrl,
               });
               consensusSuperNodes++;
             } else {
-              this.log.info(`L1 consensus host is reachable but does not serve historical blob sidecars`, {
+              this.log.info(`L1 consensus host is reachable but does not serve blob sidecars`, {
                 l1ConsensusHostUrl,
               });
               consensusNonSuperNodes++;
             }
           } else {
-            // Chain is younger than the pruning window — all nodes serve all blobs
-            this.log.info(`L1 consensus host is reachable (chain too young to distinguish supernode)`, {
-              l1ConsensusHostUrl,
-            });
+            this.log.info(`L1 consensus host is reachable`, { l1ConsensusHostUrl });
             consensusSuperNodes++;
           }
         } catch (err) {
