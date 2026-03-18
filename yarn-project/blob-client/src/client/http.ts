@@ -95,8 +95,7 @@ export class HttpBlobClient implements BlobClientInterface {
     const archiveUrl = this.archiveClient?.getBaseUrl();
     this.log.info(`Testing configured blob sources`, { l1ConsensusHostUrls, archiveUrl });
 
-    let consensusSuperNodes = 0;
-    let consensusNonSuperNodes = 0;
+    let consensusHosts = 0;
     let archiveSources = 0;
     let blobSinks = 0;
 
@@ -105,45 +104,18 @@ export class HttpBlobClient implements BlobClientInterface {
         const l1ConsensusHostUrl = l1ConsensusHostUrls[l1ConsensusHostIndex];
         try {
           const { url, ...options } = getBeaconNodeFetchOptions(
-            `${l1ConsensusHostUrl}/eth/v1/beacon/headers/head`,
+            `${l1ConsensusHostUrl}/eth/v1/beacon/headers`,
             this.config,
             l1ConsensusHostIndex,
           );
           const res = await this.fetch(url, options);
-          if (!res.ok) {
+          if (res.ok) {
+            this.log.info(`L1 consensus host is reachable`, { l1ConsensusHostUrl });
+            consensusHosts++;
+          } else {
             this.log.error(`Failure reaching L1 consensus host: ${res.statusText} (${res.status})`, {
               l1ConsensusHostUrl,
             });
-            continue;
-          }
-
-          // Check if the host serves blob sidecars (supernode/semi-supernode).
-          // Query the blob sidecar endpoint on the head slot. A 200 response (even with
-          // an empty data array when no blobs were posted) means the node supports serving
-          // blob sidecars. A non-200 means it doesn't serve them at all.
-          const body = await res.json();
-          const headSlot = body?.data?.header?.message?.slot;
-          if (headSlot) {
-            const { url: blobUrl, ...blobOpts } = getBeaconNodeFetchOptions(
-              `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${headSlot}`,
-              this.config,
-              l1ConsensusHostIndex,
-            );
-            const blobRes = await this.fetch(blobUrl, blobOpts);
-            if (blobRes.ok) {
-              this.log.info(`L1 consensus host is reachable and serves blob sidecars (supernode)`, {
-                l1ConsensusHostUrl,
-              });
-              consensusSuperNodes++;
-            } else {
-              this.log.info(`L1 consensus host is reachable but does not serve blob sidecars`, {
-                l1ConsensusHostUrl,
-              });
-              consensusNonSuperNodes++;
-            }
-          } else {
-            this.log.info(`L1 consensus host is reachable`, { l1ConsensusHostUrl });
-            consensusSuperNodes++;
           }
         } catch (err) {
           this.log.error(`Error reaching L1 consensus host`, err, { l1ConsensusHostUrl });
@@ -178,12 +150,8 @@ export class HttpBlobClient implements BlobClientInterface {
     }
 
     // Emit a single summary after validating all sources
-    const successfulSourceCount = consensusSuperNodes + archiveSources + blobSinks;
-
-    let summary = `Blob client running with consensusSuperNodes=${consensusSuperNodes} archiveSources=${archiveSources} blobSinks=${blobSinks}`;
-    if (consensusNonSuperNodes > 0) {
-      summary += `. ${consensusNonSuperNodes} consensus client(s) ignored because they are not running in supernode or semi-supernode mode`;
-    }
+    const successfulSourceCount = consensusHosts + archiveSources + blobSinks;
+    const summary = `Blob client running with consensusHosts=${consensusHosts} archiveSources=${archiveSources} blobSinks=${blobSinks}`;
 
     if (successfulSourceCount === 0) {
       if (this.config.blobAllowEmptySources) {
@@ -191,7 +159,7 @@ export class HttpBlobClient implements BlobClientInterface {
       } else {
         throw new Error(summary);
       }
-    } else if (consensusSuperNodes === 0) {
+    } else if (consensusHosts === 0) {
       this.log.warn(summary);
     } else {
       this.log.info(summary);

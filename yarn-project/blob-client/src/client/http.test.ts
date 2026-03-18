@@ -869,7 +869,7 @@ describe('HttpBlobClient FileStore Integration', () => {
         { fileStoreClients: [failingStore as unknown as FileStoreBlobClient] },
       );
 
-      await expect(client.testSources()).rejects.toThrow('Blob client running with consensusSuperNodes=0');
+      await expect(client.testSources()).rejects.toThrow('Blob client running with consensusHosts=0');
     });
   });
 
