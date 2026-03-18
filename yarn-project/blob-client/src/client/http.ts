@@ -93,6 +93,7 @@ export class HttpBlobClient implements BlobClientInterface {
   public async testSources() {
     const { l1ConsensusHostUrls } = this.config;
     const archiveUrl = this.archiveClient?.getBaseUrl();
+    this.log.info(`Testing configured blob sources`, { l1ConsensusHostUrls, archiveUrl });
 
     let consensusSuperNodes = 0;
     let consensusNonSuperNodes = 0;
@@ -128,11 +129,20 @@ export class HttpBlobClient implements BlobClientInterface {
             );
             const blobRes = await this.fetch(blobUrl, blobOpts);
             if (blobRes.ok) {
+              this.log.info(`L1 consensus host is reachable and serves blob sidecars (supernode)`, {
+                l1ConsensusHostUrl,
+              });
               consensusSuperNodes++;
             } else {
+              this.log.info(`L1 consensus host is reachable but does not serve blob sidecars (not a supernode)`, {
+                l1ConsensusHostUrl,
+              });
               consensusNonSuperNodes++;
             }
           } else {
+            this.log.info(`L1 consensus host is reachable but does not serve blob sidecars (not a supernode)`, {
+              l1ConsensusHostUrl,
+            });
             consensusNonSuperNodes++;
           }
         } catch (err) {
@@ -144,7 +154,7 @@ export class HttpBlobClient implements BlobClientInterface {
     if (this.archiveClient) {
       try {
         const latest = await this.archiveClient.getLatestBlock();
-        this.log.debug(`Archive client synced to L1 block ${latest.number}`, { archiveUrl });
+        this.log.info(`Archive client is reachable and synced to L1 block ${latest.number}`, { latest, archiveUrl });
         archiveSources++;
       } catch (err) {
         this.log.error(`Error reaching archive client`, err, { archiveUrl });
@@ -156,6 +166,7 @@ export class HttpBlobClient implements BlobClientInterface {
         try {
           const accessible = await fileStoreClient.testConnection();
           if (accessible) {
+            this.log.info(`FileStore is reachable`, { url: fileStoreClient.getBaseUrl() });
             blobSinks++;
           } else {
             this.log.warn(`FileStore is not accessible`, { url: fileStoreClient.getBaseUrl() });
@@ -166,6 +177,7 @@ export class HttpBlobClient implements BlobClientInterface {
       }
     }
 
+    // Emit a single summary after validating all sources
     const successfulSourceCount = consensusSuperNodes + archiveSources + blobSinks;
 
     let summary = `Blob client running with consensusSuperNodes=${consensusSuperNodes} archiveSources=${archiveSources} blobSinks=${blobSinks}`;
