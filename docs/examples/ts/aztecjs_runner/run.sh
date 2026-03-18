@@ -10,7 +10,7 @@
 #   ./run.sh connection     # Run specific example
 #   ./run.sh getting_started advanced  # Run multiple examples
 #
-# Available examples: connection, getting_started, advanced, authwit, testing, recursive_verification
+# Available examples: connection, getting_started, advanced, authwit, testing, swap, recursive_verification
 
 set -euo pipefail
 
