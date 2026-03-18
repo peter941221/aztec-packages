@@ -104,46 +104,50 @@ export class HttpBlobClient implements BlobClientInterface {
       for (let l1ConsensusHostIndex = 0; l1ConsensusHostIndex < l1ConsensusHostUrls.length; l1ConsensusHostIndex++) {
         const l1ConsensusHostUrl = l1ConsensusHostUrls[l1ConsensusHostIndex];
         try {
-          // Check reachability and get head slot
-          const { url: headersUrl, ...headersOpts } = getBeaconNodeFetchOptions(
+          const { url, ...options } = getBeaconNodeFetchOptions(
             `${l1ConsensusHostUrl}/eth/v1/beacon/headers/head`,
             this.config,
             l1ConsensusHostIndex,
           );
-          const headersRes = await this.fetch(headersUrl, headersOpts);
-          if (!headersRes.ok) {
-            this.log.error(`Failure reaching L1 consensus host: ${headersRes.statusText} (${headersRes.status})`, {
+          const res = await this.fetch(url, options);
+          if (!res.ok) {
+            this.log.error(`Failure reaching L1 consensus host: ${res.statusText} (${res.status})`, {
               l1ConsensusHostUrl,
             });
             continue;
           }
 
-          // Check if the host serves blob sidecars (supernode/semi-supernode)
-          const headersBody = await headersRes.json();
-          const headSlot = headersBody?.data?.header?.message?.slot;
-          if (headSlot) {
+          // Check if the host serves historical blob sidecars (supernode/semi-supernode)
+          // by querying a slot beyond the standard pruning window (4096 epochs * 32 slots = 131072 slots).
+          // Regular beacon nodes prune blobs after this window, supernodes retain them.
+          const body = await res.json();
+          const headSlot = Number(body?.data?.header?.message?.slot);
+          // Slot old enough to be outside the standard blob pruning window
+          const oldSlot = headSlot - 131072;
+          if (oldSlot > 0) {
             const { url: blobUrl, ...blobOpts } = getBeaconNodeFetchOptions(
-              `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${headSlot}`,
+              `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${oldSlot}`,
               this.config,
               l1ConsensusHostIndex,
             );
             const blobRes = await this.fetch(blobUrl, blobOpts);
             if (blobRes.ok) {
-              this.log.info(`L1 consensus host is reachable and serves blob sidecars (supernode)`, {
+              this.log.info(`L1 consensus host is reachable and serves historical blob sidecars (supernode)`, {
                 l1ConsensusHostUrl,
               });
               consensusSuperNodes++;
             } else {
-              this.log.info(`L1 consensus host is reachable but does not serve blob sidecars (not a supernode)`, {
+              this.log.info(`L1 consensus host is reachable but does not serve historical blob sidecars`, {
                 l1ConsensusHostUrl,
               });
               consensusNonSuperNodes++;
             }
           } else {
-            this.log.info(`L1 consensus host is reachable but does not serve blob sidecars (not a supernode)`, {
+            // Chain is younger than the pruning window — all nodes serve all blobs
+            this.log.info(`L1 consensus host is reachable (chain too young to distinguish supernode)`, {
               l1ConsensusHostUrl,
             });
-            consensusNonSuperNodes++;
+            consensusSuperNodes++;
           }
         } catch (err) {
           this.log.error(`Error reaching L1 consensus host`, err, { l1ConsensusHostUrl });
