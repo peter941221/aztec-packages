@@ -101,14 +101,14 @@ export class HttpBlobClient implements BlobClientInterface {
     let blobSinks = 0;
 
     if (l1ConsensusHostUrls && l1ConsensusHostUrls.length > 0) {
-      for (let i = 0; i < l1ConsensusHostUrls.length; i++) {
-        const l1ConsensusHostUrl = l1ConsensusHostUrls[i];
+      for (let l1ConsensusHostIndex = 0; l1ConsensusHostIndex < l1ConsensusHostUrls.length; l1ConsensusHostIndex++) {
+        const l1ConsensusHostUrl = l1ConsensusHostUrls[l1ConsensusHostIndex];
         try {
           // Check reachability and get head slot
           const { url: headersUrl, ...headersOpts } = getBeaconNodeFetchOptions(
             `${l1ConsensusHostUrl}/eth/v1/beacon/headers/head`,
             this.config,
-            i,
+            l1ConsensusHostIndex,
           );
           const headersRes = await this.fetch(headersUrl, headersOpts);
           if (!headersRes.ok) {
@@ -125,7 +125,7 @@ export class HttpBlobClient implements BlobClientInterface {
             const { url: blobUrl, ...blobOpts } = getBeaconNodeFetchOptions(
               `${l1ConsensusHostUrl}/eth/v1/beacon/blobs/${headSlot}`,
               this.config,
-              i,
+              l1ConsensusHostIndex,
             );
             const blobRes = await this.fetch(blobUrl, blobOpts);
             if (blobRes.ok) {
