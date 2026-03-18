@@ -120,7 +120,7 @@ export class HttpBlobClient implements BlobClientInterface {
         }
       }
     } else {
-      this.log.warn('No L1 consensus host urls configured');
+      this.log.info('No L1 consensus host urls configured');
     }
 
     if (this.archiveClient) {
@@ -132,7 +132,7 @@ export class HttpBlobClient implements BlobClientInterface {
         this.log.error(`Error reaching archive client`, err, { archiveUrl });
       }
     } else {
-      this.log.warn('No archive client configured');
+      this.log.info('No archive client configured');
     }
 
     if (this.fileStoreClients.length > 0) {
