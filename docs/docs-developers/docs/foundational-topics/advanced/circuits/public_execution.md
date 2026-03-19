@@ -22,6 +22,14 @@ For transactions containing public functions, the execution flow is:
 3. **AVM** - Executes all public functions, produces accumulated data
 4. **Rollup Circuits** - Validates proofs and includes in block
 
+## Supported Cryptographic Operations
+
+The AVM supports Poseidon2, SHA-256, Keccak, and Grumpkin curve operations (embedded curve add, multi-scalar multiplication). ECDSA signature verification, AES-128, Blake2s, and Blake3 are not available in public functions.
+
+:::warning
+If your contract uses unsupported Noir blackbox functions in a public function, transpilation will fail at compile time. See [AVM Cryptographic Compatibility](./avm_compatibility.md) for the full compatibility table and workarounds.
+:::
+
 ## Execution Phases
 
 The AVM executes public functions in three distinct phases:
@@ -72,6 +80,7 @@ These snapshots are validated in the rollup circuits to ensure continuity across
 
 ## Related Pages
 
+- [AVM Cryptographic Compatibility](./avm_compatibility.md) – Which Noir primitives work in public functions
 - [Private Kernel](./private_kernel.md) – How private functions are processed
 - [Call Types](../../call_types.md) – How private and public functions interact
 - [State Management](../../state_management.md) – How public and private state works
