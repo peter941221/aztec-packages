@@ -159,7 +159,7 @@ HasResponse LMDBStoreWrapper::has(const HasRequest& req)
         }
 
         exists.push_back(std::all_of(requested_values->begin(), requested_values->end(), [&](const auto& val) {
-            return std::find(values->begin(), values->end(), val) != values->begin();
+            return std::find(values->begin(), values->end(), val) != values->end();
         }));
     }
 
