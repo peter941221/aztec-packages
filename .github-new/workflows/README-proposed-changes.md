@@ -52,17 +52,19 @@ And in the jq payload construction:
 +           '{prompt: $prompt, user: $user, comment_id: $comment_id, run_comment_id: $run_comment_id, repo: $repo, run_url: $run_url, link: $link, target_ref: $target_ref}')
 ```
 
-## 2. `backport.yml` — Pass `target_ref` when dispatching ClaudeBox
+## 2. `backport.yml` — Update prompt and pass `target_ref`
 
 In the "Notify Slack and dispatch ClaudeBox on backport failure" step:
 
 ```diff
           gh workflow run claudebox.yml \
-            -f prompt="Backport PR #$PR ($TITLE) to $BRANCH. The automatic cherry-pick failed due to conflicts. Follow the backport skill (.claude/skills/backport/SKILL.md) to resolve conflicts and create a PR targeting $BRANCH." \
+-           -f prompt="Backport PR #$PR ($TITLE) to $BRANCH. The automatic cherry-pick failed due to conflicts. Follow the backport skill (.claude/skills/backport/SKILL.md) to resolve conflicts and create a PR targeting $BRANCH." \
 -           -f link="${LINK:-$URL}"
++           -f prompt="Backport PR #$PR ($TITLE) to $BRANCH. The automatic cherry-pick failed due to conflicts. Follow .claude/claudebox/backport.md to resolve conflicts and create a PR." \
 +           -f link="${LINK:-$URL}" \
 +           -f target_ref="origin/backport-to-${BRANCH}-staging"
 ```
 
-This makes the ClaudeBox container start on the staging branch instead of `origin/next`,
-so `create_pr` pushes from the correct base.
+Changes:
+- **Prompt now references `.claude/claudebox/backport.md`** instead of the skill
+- **Passes `target_ref`** so the container starts on the staging branch instead of `origin/next`
