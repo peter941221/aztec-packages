@@ -21,7 +21,9 @@ Aztec provides three ways to profile. Each serves a different purpose:
 | ---- | ---------------- | ----------------- | ----------- |
 | `aztec profile gates` | Per-function gate counts | No | Quick check of individual function costs after compiling |
 | `aztec profile flamegraph` | Per-function flamegraph SVG | No | Deep-dive into where gates come from inside a function |
-| `aztec-wallet profile` / `.profile()` in aztec.js | Full transaction gate count including all kernel circuits | Yes | Understanding the true cost of a transaction end-to-end |
+| `aztec-wallet profile` / `.profile()` in aztec.js | Full transaction gate count including all kernel circuits | Yes* | Understanding the true cost of a transaction end-to-end |
+
+\* `aztec-wallet profile` and `ContractFunctionInteraction.profile()` require a deployed contract. However, `DeployMethod.profile()` in aztec.js can profile deployment transactions before the contract exists.
 
 In most cases, start with `aztec profile gates` for a quick overview, then use the full transaction profiling tools when you need to understand kernel overhead.
 
@@ -85,7 +87,7 @@ PROFILER_PATH=/path/to/noir-profiler aztec profile flamegraph ./target/my_contra
 
 ## Full transaction profiling
 
-The tools above measure individual function gate counts. To understand the **total** proving cost of a transaction — including account entrypoints and kernel circuits — use `aztec-wallet profile` or `.profile()` in aztec.js. These require a deployed contract and a running network.
+The tools above measure individual function gate counts. To understand the **total** proving cost of a transaction — including account entrypoints and kernel circuits — use `aztec-wallet profile` or `.profile()` in aztec.js. These require a running network and, in most cases, a deployed contract. The exception is `DeployMethod.profile()` in aztec.js, which can profile deployment transactions before the contract exists.
 
 ### Profile with aztec-wallet
 

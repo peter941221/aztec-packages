@@ -47,9 +47,9 @@ Each optimisation technique has its own tradeoffs and caveats so should be caref
 
 #### Overhead of nested private calls
 
-Each private function call in a transaction adds a kernel circuit iteration (~101k gates for `private_kernel_inner`). This overhead is significant and compounds with the number of distinct private function calls. Be mindful of calling/nesting too many private functions — this may influence your design towards larger private functions rather than conventionally atomic ones.
+Every transaction pays a fixed kernel overhead (~290k gates for init, reset, and tail circuits). Each additional private function call beyond the account entrypoint adds a `private_kernel_inner` iteration (~101k gates). This overhead compounds with the number of distinct private function calls, so be mindful of calling/nesting too many private functions — this may influence your design towards larger private functions rather than conventionally atomic ones.
 
-For example, if you have a function that calls an external verification step as a separate private function, inlining that verification saves an entire kernel fold (~101k gates), even if it slightly increases the calling function's own gate count.
+For example, if you have a function that calls an external verification step as a separate private function, inlining that verification saves an entire kernel iteration (~101k gates), even if it slightly increases the calling function's own gate count.
 
 See [Private Kernel Circuit - Performance Impact](../../../foundational-topics/advanced/circuits/private_kernel.md#performance-impact) for detailed numbers.
 
