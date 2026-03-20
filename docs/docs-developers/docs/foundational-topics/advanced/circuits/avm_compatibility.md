@@ -31,17 +31,13 @@ Public functions are compiled to AVM bytecode via the transpiler. The AVM has a 
 
 ## What Error Will I See?
 
-If you use an unsupported blackbox function in a `#[external("public")]` function, the transpiler will panic at compile time with:
-
-```
-Transpiler doesn't know how to process <BlackBoxOp>
-```
-
-For example, using ECDSA verification in a public function produces:
+If you use an unsupported blackbox function in a `#[external("public")]` function, the transpiler will panic at compile time with a message like:
 
 ```
 Transpiler doesn't know how to process EcdsaSecp256k1
 ```
+
+where the final token is the name of the unsupported `BlackBoxOp` variant (e.g. `AES128Encrypt`, `Blake2s`, `Blake3`).
 
 ## Signature Verification in Public: Workarounds
 
