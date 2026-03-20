@@ -73,6 +73,13 @@ clean up (see Step 10).
 
 ### Step 5: Attempt Automated Backport
 
+**Important: ClaudeBox environment detection.** If you are running inside ClaudeBox
+(i.e., you have MCP tools like `create_pr`, `git_fetch`, but NO `gh` CLI or `git push`),
+skip `backport_to_staging.sh` entirely — it requires `gh` and `git push` which are
+unavailable. Go directly to Step 5b.
+
+**If running outside ClaudeBox** (interactive user with `gh` CLI):
+
 Run the backport script from the worktree:
 
 ```bash
@@ -82,6 +89,36 @@ Run the backport script from the worktree:
 **If the script succeeds:** Skip to Step 10 (cleanup and report).
 
 **If the script fails:** Continue to Step 6 (conflict resolution).
+
+### Step 5b: ClaudeBox Manual Backport
+
+When running in ClaudeBox, you must do the backport manually using MCP tools.
+**Critical: Always branch from the staging branch, not the target branch.**
+
+```bash
+STAGING_BRANCH="backport-to-${TARGET_BRANCH}-staging"
+
+# Fetch the staging branch and the target branch
+git_fetch(args="origin ${STAGING_BRANCH}")
+git_fetch(args="origin ${TARGET_BRANCH}")
+
+# Check out the staging branch — this is your base
+# If staging branch does not exist yet, create from target branch
+git checkout -B "$STAGING_BRANCH" "origin/$STAGING_BRANCH" 2>/dev/null \\
+  || git checkout -B "$STAGING_BRANCH" "origin/$TARGET_BRANCH"
+
+# Get the merge commit SHA from the original PR
+# Use github_api to find it:
+github_api(method="GET", path="repos/AztecProtocol/aztec-packages/pulls/<PR_NUMBER>")
+# Extract .merge_commit_sha from the response
+
+# Fetch and cherry-pick the merge commit ONTO THE STAGING BRANCH
+git_fetch(args="origin <MERGE_COMMIT_SHA>")
+git cherry-pick <MERGE_COMMIT_SHA> --no-edit || true
+```
+
+If cherry-pick succeeds: go to Step 9b.
+If cherry-pick fails with conflicts: continue to Step 6.
 
 ### Step 6: Assess Conflicts
 
@@ -154,6 +191,8 @@ Fix any build errors that arise from the backport adaptation.
 
 ### Step 9: Finish with Script
 
+**If running outside ClaudeBox** (with `gh` CLI):
+
 Clean up and let the script handle commit, push, and PR management:
 
 ```bash
@@ -161,6 +200,30 @@ find . -name '*.rej' -delete
 git add -A
 ./scripts/backport_to_staging.sh --continue <PR_NUMBER> <TARGET_BRANCH>
 ```
+
+### Step 9b: Finish in ClaudeBox
+
+When running in ClaudeBox (no `gh` CLI / `git push`):
+
+```bash
+find . -name '*.rej' -delete
+git add -A
+git commit --author="<PR_AUTHOR> <<PR_AUTHOR>@users.noreply.github.com>" \\
+  -m "<PR_TITLE> (#<PR_NUMBER>)"
+```
+
+Then create the PR using the `create_pr` MCP tool:
+```
+create_pr(
+  title="<PR_TITLE> (backport #<PR_NUMBER>)",
+  body="Backport of #<PR_NUMBER> to <TARGET_BRANCH>.\n\n...",
+  base="backport-to-<TARGET_BRANCH>-staging"
+)
+```
+
+**CRITICAL**: You MUST be on the staging branch when calling `create_pr`.
+`create_pr` pushes from HEAD — if HEAD is on the wrong branch, unrelated
+commits will leak into the PR. Verify with `git log --oneline -5` before pushing.
 
 ### Step 10: Cleanup and Report
 
