@@ -1,6 +1,6 @@
 ---
 title: AVM Cryptographic Compatibility
-sidebar_position: 2
+sidebar_position: 3
 description: Which Noir cryptographic primitives work in public (AVM) functions vs private, and workarounds for unsupported operations.
 tags: [protocol, circuits]
 ---
@@ -51,7 +51,7 @@ Since ECDSA signature verification is not available in public functions, use the
 2. Store approval hashes in the **Auth Registry** (a shared public contract)
 3. Consume the approvals in **public** functions
 
-This is exactly how public authwits work. See [Authentication Witnesses](../../authwit.md) for the full pattern.
+This is exactly how public authwits work. See [Authentication Witnesses](../authwit.md) for the full pattern.
 
 :::tip Schnorr signatures
 The [`noir-lang/schnorr`](https://github.com/noir-lang/schnorr) library implements Schnorr verification in pure Noir using embedded curve operations (ECADD, MSM), which are supported in the AVM. This means Schnorr verification may work in public functions. However, the standard Aztec account contracts only use Schnorr in private functions, and the recommended pattern remains verifying signatures in private via the Auth Registry.
@@ -64,6 +64,6 @@ For the complete list of AVM opcodes, see the [AVM ISA Quick Reference](https://
 ## Related Pages
 
 - [Public Execution (AVM)](./public_execution.md) – How the AVM executes public functions
-- [Authentication Witnesses](../../authwit.md) – The Auth Registry pattern for public authorization
+- [Authentication Witnesses](../authwit.md) – The Auth Registry pattern for public authorization
 - [Call Types](../../../foundational-topics/call_types.md) – How private and public functions interact
 - [Private Kernel](./private_kernel.md) – How private functions are processed

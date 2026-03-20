@@ -121,7 +121,7 @@ sequenceDiagram
 The registry approach has a gas optimization: if authorization is set and consumed in the same transaction, the state changes cancel out, saving gas.
 
 :::tip Why use Auth Registry for signatures in public?
-Signature verification (Schnorr, ECDSA) is not directly available in public functions due to AVM limitations. The public authwit flow above is the recommended pattern: verify signatures in private, store approvals in the Auth Registry, and consume them in public. See [AVM Cryptographic Compatibility](../circuits/avm_compatibility.md) for more details.
+ECDSA signature verification is not directly available in public functions due to AVM limitations. The public authwit flow above is the recommended pattern: verify signatures in private, store approvals in the Auth Registry, and consume them in public. See [AVM Cryptographic Compatibility](./circuits/avm_compatibility.md) for more details.
 :::
 
 ### Replay prevention
