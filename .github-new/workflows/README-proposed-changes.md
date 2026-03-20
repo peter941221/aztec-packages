@@ -1,70 +1,45 @@
-# Proposed Workflow Changes for Backport Fix
+# Workflow Changes Applied — ClaudeBox `target_ref` Support
 
-These files cannot be auto-merged by ClaudeBox (`.github/` is blocked).
-Apply these diffs manually to the corresponding files in `.github/workflows/`.
+All changes below have been applied directly to the repo (CI file modification is permitted).
 
-## 1. `claudebox.yml` — Add `target_ref` input
+## Problem
 
-Add a new input to the `workflow_dispatch` section:
+When ClaudeBox is dispatched for backports or merge-train fixes, it clones the repo at `origin/next` (default). For backports, if `create_pr` is called while HEAD is on the wrong branch (e.g., the target branch instead of the staging branch), unrelated commits leak into the PR. For merge-train fixes, the container must switch to the correct merge-train branch before making changes.
 
-```diff
-   workflow_dispatch:
-     inputs:
-       prompt:
-         description: 'Prompt / instructions for Claude'
-         required: true
-         type: string
-       link:
-         description: 'Context link (e.g., PR URL, issue URL, external reference)'
-         required: false
-         type: string
-+      target_ref:
-+        description: 'Git ref to checkout in the container (e.g., origin/backport-to-v4-next-staging)'
-+        required: false
-+        type: string
-```
+## Solution: `target_ref` Input
 
-Then pass it through in the payload (in the "Run ClaudeBox" step):
+A new `target_ref` input flows through the entire dispatch chain, telling the ClaudeBox container which git ref to checkout at startup. This ensures the container begins on the correct branch before any work starts.
 
-```diff
-        env:
-          CLAUDEBOX_URL: ${{ vars.CLAUDEBOX_URL }}
-          CLAUDEBOX_API_SECRET: ${{ secrets.CLAUDEBOX_API_SECRET }}
-          CLAUDEBOX_PROMPT: ${{ steps.parse.outputs.prompt }}
-          CLAUDEBOX_LINK: ${{ steps.parse.outputs.link }}
-+         CLAUDEBOX_TARGET_REF: ${{ inputs.target_ref || '' }}
-          COMMENT_ID: ${{ github.event.comment.id || '' }}
-```
+## Changes Made
 
-And in the jq payload construction:
+### 1. `.github/workflows/claudebox.yml`
 
-```diff
-          PAYLOAD=$(jq -n \
-            --arg prompt "$CLAUDEBOX_PROMPT" \
-            --arg user "$AUTHOR" \
-            --arg comment_id "$COMMENT_ID" \
-            --arg run_comment_id "$RUN_COMMENT_ID" \
-            --arg repo "$REPO" \
-            --arg run_url "$RUN_URL" \
-            --arg link "$CLAUDEBOX_LINK" \
--           '{prompt: $prompt, user: $user, comment_id: $comment_id, run_comment_id: $run_comment_id, repo: $repo, run_url: $run_url, link: $link}')
-+           --arg target_ref "$CLAUDEBOX_TARGET_REF" \
-+           '{prompt: $prompt, user: $user, comment_id: $comment_id, run_comment_id: $run_comment_id, repo: $repo, run_url: $run_url, link: $link, target_ref: $target_ref}')
-```
+- Added `target_ref` input to `workflow_dispatch`
+- Added `CLAUDEBOX_TARGET_REF` env var in the "Run ClaudeBox" step
+- Included `target_ref` in the jq payload sent to the ClaudeBox API
 
-## 2. `backport.yml` — Update prompt and pass `target_ref`
+### 2. `.github/workflows/backport.yml`
 
-In the "Notify Slack and dispatch ClaudeBox on backport failure" step:
+- Updated prompt to reference `.claude/claudebox/backport.md` (automation doc) instead of `.claude/skills/backport/SKILL.md` (interactive skill)
+- Added `-f target_ref="origin/backport-to-${BRANCH}-staging"` so the container starts on the staging branch
 
-```diff
-          gh workflow run claudebox.yml \
--           -f prompt="Backport PR #$PR ($TITLE) to $BRANCH. The automatic cherry-pick failed due to conflicts. Follow the backport skill (.claude/skills/backport/SKILL.md) to resolve conflicts and create a PR targeting $BRANCH." \
--           -f link="${LINK:-$URL}"
-+           -f prompt="Backport PR #$PR ($TITLE) to $BRANCH. The automatic cherry-pick failed due to conflicts. Follow .claude/claudebox/backport.md to resolve conflicts and create a PR." \
-+           -f link="${LINK:-$URL}" \
-+           -f target_ref="origin/backport-to-${BRANCH}-staging"
-```
+### 3. `ci3/merge_train_failure_slack_notify`
 
-Changes:
-- **Prompt now references `.claude/claudebox/backport.md`** instead of the skill
-- **Passes `target_ref`** so the container starts on the staging branch instead of `origin/next`
+- Both dispatch paths (dequeued + CI failure) now pass `target_ref: "origin/$REF_NAME"` so the container starts on the merge-train branch (e.g., `origin/merge-train/spartan`)
+
+### 4. `.claude/claudebox/backport.md`
+
+- New automation doc with MCP-only workflow (no `gh` CLI, no `git push`)
+- Step 3 explicitly checks out the staging branch before cherry-picking
+- Step 7 verifies HEAD before calling `create_pr`
+
+## Why This Fixes the Rebase Problem
+
+The root cause was: ClaudeBox starts at `origin/next`, the prompt says "backport to v4-next", Claude checks out `v4-next` (the target), cherry-picks there, then calls `create_pr`. But the PR should target `backport-to-v4-next-staging`, and HEAD has all of `v4-next`'s history — which differs from the staging branch. Result: unrelated commits in the PR.
+
+With `target_ref=origin/backport-to-v4-next-staging`:
+1. Container starts on the staging branch
+2. Cherry-pick happens on the staging branch
+3. `create_pr` pushes from staging branch HEAD
+4. PR targets the staging branch
+5. Only the cherry-picked commit(s) appear in the diff
