@@ -1,14 +1,10 @@
 import {
+  BBJsProverFactory,
   BB_RESULT,
-  PROOF_FILENAME,
-  PUBLIC_INPUTS_FILENAME,
   type UltraHonkFlavor,
-  VK_FILENAME,
+  constructRecursiveProofFromBuffers,
   generateAvmProof,
-  generateProof,
-  readProofsFromOutputDirectory,
   verifyAvmProof,
-  verifyProof,
 } from '@aztec/bb-prover';
 import {
   AVM_V2_PROOF_LENGTH_IN_FIELDS_PADDED,
@@ -27,6 +23,7 @@ import { Proof, RecursiveProof } from '@aztec/stdlib/proofs';
 import { VerificationKeyAsFields, VerificationKeyData } from '@aztec/stdlib/vks';
 
 import * as fs from 'fs/promises';
+import { ungzip } from 'pako';
 import * as path from 'path';
 
 export async function proofBytesToRecursiveProof(
@@ -49,60 +46,50 @@ export async function proofBytesToRecursiveProof(
   return new RecursiveProof(fieldsWithoutPublicInputs, proof, true, CHONK_PROOF_LENGTH);
 }
 
-async function verifyProofWithKey(
-  pathToBB: string,
-  workingDirectory: string,
-  verificationKey: VerificationKeyData,
-  proof: Proof,
-  flavor: UltraHonkFlavor,
-  logger: Logger,
-) {
-  const publicInputsFileName = path.join(workingDirectory, PUBLIC_INPUTS_FILENAME);
-  const proofFileName = path.join(workingDirectory, PROOF_FILENAME);
-  const verificationKeyPath = path.join(workingDirectory, VK_FILENAME);
-  // TODO(https://github.com/AztecProtocol/aztec-packages/issues/13189): Put this proof parsing logic in the proof class.
-  await fs.writeFile(publicInputsFileName, proof.buffer.slice(0, proof.numPublicInputs * 32));
-  await fs.writeFile(proofFileName, proof.buffer.slice(proof.numPublicInputs * 32));
-  await fs.writeFile(verificationKeyPath, verificationKey.keyAsBytes);
-
-  const result = await verifyProof(pathToBB, proofFileName, verificationKeyPath, flavor, logger);
-  if (result.status === BB_RESULT.FAILURE) {
-    throw new Error(`Failed to verify proof from key!`);
-  }
-  logger.info(`Successfully verified proof from key in ${result.durationMs} ms`);
-}
-
 async function proveRollupCircuit<T extends UltraHonkFlavor, ProofLength extends number>(
   name: string,
   pathToBB: string,
-  workingDirectory: string,
+  _workingDirectory: string,
   circuit: NoirCompiledCircuit,
   witness: Uint8Array,
   logger: Logger,
   flavor: T,
   proofLength: ProofLength,
 ) {
-  await fs.writeFile(path.join(workingDirectory, 'witness.gz'), witness);
+  const factory = new BBJsProverFactory(pathToBB, logger);
+
+  // Decompress witness and bytecode for bb.js
+  const decompressedWitness = ungzip(witness);
+  const bytecode = ungzip(Buffer.from(circuit.bytecode, 'base64'));
   const vkBuffer = Buffer.from(circuit.verificationKey.bytes, 'hex');
-  const proofResult = await generateProof(
-    pathToBB,
-    workingDirectory,
-    name,
-    Buffer.from(circuit.bytecode, 'base64'),
-    vkBuffer,
-    path.join(workingDirectory, 'witness.gz'),
-    flavor,
-    logger,
+
+  // Generate proof via bb.js
+  const proofResult = await factory.withFreshInstance(instance =>
+    instance.generateProof(name, bytecode, vkBuffer, decompressedWitness, flavor),
   );
 
-  if (proofResult.status != BB_RESULT.SUCCESS) {
-    throw new Error(`Failed to generate proof for ${name} with flavor ${flavor}`);
-  }
-
   const vk = await VerificationKeyData.fromFrBuffer(vkBuffer);
-  const proof = await readProofsFromOutputDirectory(proofResult.proofPath!, vk, proofLength, logger);
 
-  await verifyProofWithKey(pathToBB, workingDirectory, vk, proof.binaryProof, flavor, logger);
+  // Construct proof from in-memory buffers
+  const proof = constructRecursiveProofFromBuffers(
+    proofResult.proofFields,
+    proofResult.publicInputFields,
+    vk,
+    proofLength,
+  );
+
+  // Verify the proof via bb.js
+  const publicInputFields = proofResult.publicInputFields;
+  const proofFields = proofResult.proofFields;
+
+  const { verified } = await factory.withVerifierInstance(instance =>
+    instance.verifyProof(proofFields, vk.keyAsBytes, publicInputFields, flavor),
+  );
+
+  if (!verified) {
+    throw new Error(`Failed to verify proof from key!`);
+  }
+  logger.info(`Successfully verified proof from key`);
 
   return makeProofAndVerificationKey(proof, vk);
 }
@@ -147,6 +134,7 @@ export function proveKeccakHonk(
   );
 }
 
+/** AVM proving still uses direct binary execution (no bb.js equivalent). */
 export async function proveAvm(
   avmCircuitInputs: AvmCircuitInputs,
   workingDirectory: string,
