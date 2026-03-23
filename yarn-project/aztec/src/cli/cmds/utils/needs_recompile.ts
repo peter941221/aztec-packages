@@ -51,8 +51,10 @@ async function getOldestArtifactModificationTime(targetDir: string): Promise<num
 
 /**
  * Recursively collects crate directories starting from startCrateDir by following path-based dependencies declared in
- * Nargo.toml files. Git-based deps are ignored (they only change when Nargo.toml itself is modified since the deps are
- * tagged).
+ * Nargo.toml files. Git-based deps are ignored - they only change when Nargo.toml itself is modified since the deps are
+ * tagged and hence git based deps are irrelevant for the needs-recompile check.
+ *
+ * (There is also a `collectAllCrateDirs` function that collects all the crate dirs present in the codebase).
  */
 async function collectLocalCrateDirs(startCrateDir: string): Promise<string[]> {
   // We have a set of visited dirs we check against when entering a new dir because we could stumble upon a directory
@@ -77,8 +79,9 @@ async function collectLocalCrateDirs(startCrateDir: string): Promise<string[]> {
 
     const members = (parsed.workspace as Record<string, any>)?.members as string[] | undefined;
 
+    // A Nargo.toml is either a workspace root (has workspace.members) or a single crate (has dependencies).
     if (Array.isArray(members)) {
-      // The crate is a workspace root and has member defined so we visit the members
+      // The crate is a workspace root and has members defined so we visit the members
       for (const member of members) {
         const memberPath = resolve(absDir, member);
         await visit(memberPath);

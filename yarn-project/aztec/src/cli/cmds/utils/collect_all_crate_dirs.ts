@@ -60,8 +60,9 @@ export async function collectAllCrateDirs(startCrateDir: string): Promise<string
     const parsed = TOML.parse(content) as Record<string, any>;
     const members = (parsed.workspace as Record<string, any>)?.members as string[] | undefined;
 
+    // A Nargo.toml is either a workspace root (has workspace.members) or a single crate (has dependencies).
     if (Array.isArray(members)) {
-      // Workspace root — visit each member crate
+      // The crate is a workspace root and has members defined so we visit the members
       for (const member of members) {
         await visit(resolve(absDir, member));
       }
