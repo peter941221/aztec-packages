@@ -7,37 +7,6 @@ import { dirname, join, resolve } from 'path';
 import { run } from './spawn.js';
 
 /**
- * Computes the local nargo cache path for a git dependency, mirroring nargo's own `git_dep_location` function.
- * Path format: `$HOME/nargo/<domain>/<repo-path>/<tag>`
- * e.g. `~/nargo/github.com/AztecProtocol/aztec-packages/v0.82.0`
- */
-function nargoGitDepPath(gitUrl: string, tag: string): string {
-  const url = new URL(gitUrl);
-  const domain = url.hostname;
-  const repoPath = url.pathname.replace(/^\//, '');
-  return join(homedir(), 'nargo', domain, repoPath, tag);
-}
-
-/**
- * Ensures a git dep is present in the nargo cache, cloning it if it isn't. Mirrors nargo's `clone_git_repo`.
- * If cloning fails (e.g. no network), throws with a message suggesting `nargo check` to prime the cache.
- */
-async function ensureGitDepCached(gitUrl: string, tag: string, cachePath: string): Promise<void> {
-  if (existsSync(cachePath)) {
-    return;
-  }
-  await mkdir(dirname(cachePath), { recursive: true });
-  try {
-    await run('git', ['-c', 'advice.detachedHead=false', 'clone', '--depth', '1', '--branch', tag, gitUrl, cachePath]);
-  } catch (err: any) {
-    throw new Error(
-      `Failed to fetch git dependency ${gitUrl}@${tag}: ${err?.message ?? err}.\n` +
-        `Try running \`nargo check\` first to prime the dependency cache.`,
-    );
-  }
-}
-
-/**
  * Recursively collects all crate directories starting from startCrateDir by following both path-based and git-based
  * dependencies declared in Nargo.toml files. Git-based deps are fetched into the nargo cache
  * (`$HOME/nargo/<domain>/<repo-path>/<tag>`) if not already present.
@@ -106,4 +75,35 @@ export async function collectAllCrateDirs(startCrateDir: string): Promise<string
 
   await visit(startCrateDir);
   return [...visited];
+}
+
+/**
+ * Computes the local nargo cache path for a git dependency, mirroring nargo's own `git_dep_location` function.
+ * Path format: `$HOME/nargo/<domain>/<repo-path>/<tag>`
+ * e.g. `~/nargo/github.com/AztecProtocol/aztec-packages/v0.82.0`
+ */
+function nargoGitDepPath(gitUrl: string, tag: string): string {
+  const url = new URL(gitUrl);
+  const domain = url.hostname;
+  const repoPath = url.pathname.replace(/^\//, '');
+  return join(homedir(), 'nargo', domain, repoPath, tag);
+}
+
+/**
+ * Ensures a git dep is present in the nargo cache, cloning it if it isn't. Mirrors nargo's `clone_git_repo`.
+ * If cloning fails (e.g. no network), throws with a message suggesting `nargo check` to prime the cache.
+ */
+async function ensureGitDepCached(gitUrl: string, tag: string, cachePath: string): Promise<void> {
+  if (existsSync(cachePath)) {
+    return;
+  }
+  await mkdir(dirname(cachePath), { recursive: true });
+  try {
+    await run('git', ['-c', 'advice.detachedHead=false', 'clone', '--depth', '1', '--branch', tag, gitUrl, cachePath]);
+  } catch (err: any) {
+    throw new Error(
+      `Failed to fetch git dependency ${gitUrl}@${tag}: ${err?.message ?? err}.\n` +
+        `Try running \`nargo check\` first to prime the dependency cache.`,
+    );
+  }
 }
