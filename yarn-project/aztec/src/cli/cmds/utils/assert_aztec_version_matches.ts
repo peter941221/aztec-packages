@@ -5,7 +5,7 @@ import TOML from '@iarna/toml';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-import { collectLocalCrateDirs } from './collect_local_crate_dirs.js';
+import { collectAllCrateDirs } from './collect_all_crate_dirs.js';
 
 /** Warns if the `aztec` dependency tag in any crate's Nargo.toml doesn't match the CLI version. */
 export async function assertAztecVersionMatches(log: LogFn): Promise<void> {
@@ -18,7 +18,7 @@ export async function assertAztecVersionMatches(log: LogFn): Promise<void> {
   const expectedTag = `v${cliVersion}`;
   const mismatches: { file: string; tag: string }[] = [];
 
-  const crateDirs = await collectLocalCrateDirs('.');
+  const crateDirs = await collectAllCrateDirs('.');
 
   for (const dir of crateDirs) {
     const tomlPath = join(dir, 'Nargo.toml');
